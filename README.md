@@ -25,7 +25,7 @@ $ poetry shell
 
 Usage:
 ```shell
-$ ./unredact <redacted-pdf-file-path>
+$ python -m unredact <redacted-pdf-file-path>
 ```
 
 Executing the script will produce a new PDF file named the same as the original
