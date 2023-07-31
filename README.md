@@ -2,9 +2,13 @@
 
 This repo contains a script to remove weak redactions from PDF files. Note that
 this script will not uncover anything more than can be revealed by copying and
-pasting redacted content$^1$. However, it operates directly on the original
+pasting redacted content(\*). However, it operates directly on the original
 redacted PDF file and produces an unredacted version maintaining as much of the
 original formatting as possible in a new unredacted PDF.
+
+[\*] In addition to black rectangles that Adobe tools produce, `unredact.py`
+also removes all black images that are sometimes placed over text and images.
+I'm not sure that copy-paste works in that case.
 
 Usage:
 ```
