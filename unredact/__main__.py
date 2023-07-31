@@ -5,7 +5,7 @@ import sys
 from io import BytesIO
 
 import PIL
-from pdfminer.converter import PDFPageAggregator, PDFResourceManager
+from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import (
     LAParams,
     LTAnno,
@@ -23,7 +23,7 @@ from pdfminer.pdfcolor import (
     LITERAL_DEVICE_GRAY,
     LITERAL_DEVICE_RGB,
 )
-from pdfminer.pdfinterp import PDFPageInterpreter
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
