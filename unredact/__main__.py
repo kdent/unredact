@@ -32,19 +32,9 @@ from reportlab.pdfgen import canvas
 
 from unredact.utils.constants import DEFAULT_FONT, FONTS
 
-if len(sys.argv) != 2:
-    sys.stderr.write(f"usage: {sys.argv[0]} <pdf_file>\n")
-    sys.exit(1)
-
-pdf_file = sys.argv[1]
-
-
-##########################################
-# Function definitions
-##########################################
-
 
 def get_output_filename(input_filepath):
+    """Retrieve the output file name."""
     file_path = pathlib.Path(input_filepath)
     return str(
         file_path.with_name(file_path.stem + "-unredacted" + file_path.suffix)
@@ -61,7 +51,10 @@ def print_char(canvas, char_element):
         canvas.setFont(fontname, attrs["size"])
     except KeyError as err:
         print("unknown font:", err, "falling back to", DEFAULT_FONT)
-        print("But you can add this font to the fontmap to improve the output.")
+        print(
+            "But you can add this font to the FONTS in the constants file to "
+            "improve the output."
+        )
         canvas.setFont(DEFAULT_FONT, attrs["size"])
 
     set_canvas_colors(
@@ -73,14 +66,14 @@ def print_char(canvas, char_element):
 
 
 def print_text_line(canvas, text_line_element):
-    for element in text_line_element:
-        if isinstance(element, LTChar):
-            print_char(canvas, element)
-        elif isinstance(element, LTAnno):
+    for ele in text_line_element:
+        if isinstance(ele, LTChar):
+            print_char(canvas, ele)
+        elif isinstance(ele, LTAnno):
             None  # TODO: Not sure what to do with Annotations
         else:
-            print("*******", type(element))
-            print(element.__dict__)
+            print("*******", type(ele))
+            print(ele.__dict__)
 
 
 #
@@ -100,16 +93,16 @@ class BMPWriter:
         self.width = width
         self.height = height
         if bits == 1:
-            ncols = 2
+            num_cols = 2
         elif bits == 8:
-            ncols = 256
+            num_cols = 256
         elif bits == 24:
-            ncols = 0
+            num_cols = 0
         else:
             raise ValueError(bits)
         self.line_size = align32((self.width * self.bits + 7) // 8)
         self.data_size = self.line_size * self.height
-        header_size = 14 + 40 + ncols * 4
+        header_size = 14 + 40 + num_cols * 4
         info = struct.pack(
             "<IiiHHIIIIII",
             40,
@@ -121,7 +114,7 @@ class BMPWriter:
             self.data_size,
             0,
             0,
-            ncols,
+            num_cols,
             0,
         )
         assert len(info) == 40, len(info)
@@ -137,11 +130,11 @@ class BMPWriter:
         assert len(header) == 14, len(header)
         self.fp.write(header)
         self.fp.write(info)
-        if ncols == 2:
+        if num_cols == 2:
             # B&W color table
             for i in (0, 255):
                 self.fp.write(struct.pack("BBBx", i, i, i))
-        elif ncols == 256:
+        elif num_cols == 256:
             # grayscale color table
             for i in range(256):
                 self.fp.write(struct.pack("BBBx", i, i, i))
@@ -234,15 +227,16 @@ def save_image(image, fp):
 
 
 def set_canvas_colors(canvas, stroke_color, fill_color):
+    """Set canvas stroke and fill colors."""
     # Set the stroke color
-    if stroke_color != None:
+    if stroke_color is not None:
         if isinstance(stroke_color, float) or stroke_color in [0, 1]:
             canvas.setStrokeGray(stroke_color)
         else:
             canvas.setStrokeColorRGB(*stroke_color)
 
     # Set the fill color
-    if fill_color != None:
+    if fill_color is not None:
         if isinstance(fill_color, float) or fill_color in [0, 1]:
             canvas.setFillGray(fill_color)
         else:
@@ -271,12 +265,18 @@ def print_image(canvas, element):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.stderr.write(f"usage: {sys.argv[0]} <pdf_file>\n")
+        sys.exit(1)
+
+    pdf_file = sys.argv[1]
+
     document = open(pdf_file, "rb")
 
-    rsrcmgr = PDFResourceManager()
-    laparams = LAParams()
-    device = PDFPageAggregator(rsrcmgr, laparams=laparams)
-    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    rsrc_mngr = PDFResourceManager()
+    la_params = LAParams()
+    device = PDFPageAggregator(rsrc_mngr, laparams=la_params)
+    interpreter = PDFPageInterpreter(rsrc_mngr, device)
 
     output_file = get_output_filename(pdf_file)
     c = canvas.Canvas(output_file, pageCompression=1)
