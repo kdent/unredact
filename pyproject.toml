@@ -32,6 +32,9 @@ line-length = 80
 target-version = "py311"
 select = ["D"]
 
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["D104"]
+
 [tool.ruff.pydocstyle]
 convention = "numpy"
 
