@@ -6,9 +6,34 @@ authors = ["Kyle Dent <kdent@seaglass.com>"]
 license = "MIT"
 readme = "README.md"
 
+[tool.poetry.scripts]
+lint = "black && isort && ruff"
+
 [tool.poetry.dependencies]
 python = "^3.9"
+black = "^23.7.0"
+ruff = "^0.0.281"
+isort = "^5.12.0"
+pdfminer = "^20191125"
+pillow = "^10.0.0"
+reportlab = "^4.0.4"
 
+[tool.black]
+line-length = 80
+
+[tool.isort]
+profile= "black"
+line_length = 80
+skip = [".gitignore", "project/data/"]
+
+[tool.ruff]
+fix=true
+line-length = 80
+target-version = "py311"
+select = ["D"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
 
 [build-system]
 requires = ["poetry-core"]
