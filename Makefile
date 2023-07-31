@@ -3,6 +3,6 @@
 
 .PHONY: lint
 lint:
-	black ./
-	isort ./
-	ruff /
+	black ./unredact
+	isort ./unredact
+	ruff ./unredact
