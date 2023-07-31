@@ -16,11 +16,16 @@ I'm not sure that copy-paste works in that case.
 
 ## Running unredact
 
-It's recommended that you use a virtual environment to run unredact. For setup instructions, please follow this link: [Link](https://promisefalaye.hashnode.dev/how-to-set-up-python-virtual-environments-and-why-it-is-a-good-choice)
+Make sure you have Poetry installed, directions to do that can be found in this link: [Link](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment)
+
+For details on Poetry activation, you can follow this link: [Link](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment), OR simply activate your Poetry environment via this command:
+```shell
+$ poetry shell
+```
 
 Usage:
-```
-    $ ./unredact <redacted-pdf-file>
+```shell
+$ ./unredact <redacted-pdf-file-path>
 ```
 
 Executing the script will produce a new PDF file named the same as the original
@@ -78,3 +83,6 @@ the background. The code should figure out and fix the transparency when it
 exists.
 * Some unredacted files are much bigger than the original file.
 
+
+## Dev commands
+`make lint`: Runs `black`, `ruff`, and `isort` over the code files.
