@@ -7,7 +7,7 @@ redacted PDF file and produces an unredacted version maintaining as much of the
 original formatting as possible in a new unredacted PDF.
 
 [\*] In addition to black rectangles that Adobe tools produce, `unredact.py`
-also removes all black images that are sometimes placed over text and images.
+also removes all-black images that are sometimes placed over text and images.
 I'm not sure that copy-paste works in that case.
 
 Usage:
@@ -16,7 +16,7 @@ Usage:
 ```
 
 Executing the script will produce a new PDF file named the same as the orginal
-docuemtn but with '-unredacted' appended to the end of the name.
+document but with '-unredacted' appended to the end of the name.
 
 ## What is redaction?
 Redaction is a form of censoring sensitive content from documents. It's
