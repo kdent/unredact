@@ -1,3 +1,4 @@
+"""Contains all code needed to unredact weak redactions from the requested PDF."""
 import pathlib
 import re
 import struct
@@ -29,42 +30,7 @@ from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-fontmap = {
-    "TimesNewRomanPSMT": "Times-Roman",
-    "TimesNewRomanPS-ItalicMT": "Times-Italic",
-    "TimesNewRomanPS-BoldItalicMT": "Times-BoldItalic",
-    "TimesNewRomanPS-BoldMT": "Times-Bold",
-    "ArialMT": "Helvetica",
-    "Arial-ItalicMT": "Helvetica-Oblique",
-    "Arial-BoldMT": "Helvetica-Bold",
-    "Arial-BoldItalicMT": "Helvetica-BoldOblique",
-    "CambriaMath": "Times-Roman",
-    "Calibri": "Helvetica",
-    "Corbel": "Helvetica",
-    "CourierNew": "Courier",
-    "CourierNewPSMT": "Courier",
-    "Arial": "Helvetica",
-    "Arial,Bold": "Helvetica-Bold",
-    "Arial,BoldItalic": "Helvetica-BoldOblique",
-    "QuickTypeII": "Helvetica",
-    "QuickTypeII,Italic": "Helvetica-Oblique",
-    "QuickTypeII,Bold": "Helvetica-Bold",
-    "QuickTypeIICondensed": "Helvetica",
-    "QuickTypeIICondensed,Bold": "Helvetica-Bold",
-    "QuickTypeIICourierA": "Courier",
-    "QuickTypeIIPi": "Helvetica",
-    "UniversLTStd-Light": "Helvetica",
-    "Univers_LT_Std_45_LightBold": "Helvetica-Bold",
-    "Univers_LT_Std_47_Cn_LtBold": "Helvetica-Bold",
-    "Univers_LT_Std_47_Cn_Lt": "Helvetica",
-    "Univers_LT_Std_57_Cn": "Helvetica",
-    "Univers_LT_Std_55": "Helvetica",
-    "Univers_LT_67_CondensedBoldBold": "Helvetica-Bold",
-    "Verdana": "Helvetica",
-    "Wingdings-Regular": "ZapfDingbats",
-    "Wingdings2": "ZapfDingbats",
-}
-DEFAULT_FONT = "Times-Roman"
+from unredact.utils.constants import DEFAULT_FONT, FONTS
 
 if len(sys.argv) != 2:
     sys.stderr.write(f"usage: {sys.argv[0]} <pdf_file>\n")
@@ -89,8 +55,8 @@ def print_char(canvas, char_element):
     attrs = char_element.__dict__
     fontname = attrs["fontname"]
     fontname = re.sub("^[A-Z]{6}\+", "", fontname)
-    if fontname in fontmap:
-        fontname = fontmap[fontname]
+    if fontname in FONTS:
+        fontname = FONTS[fontname]
     try:
         canvas.setFont(fontname, attrs["size"])
     except KeyError as err:
@@ -141,9 +107,9 @@ class BMPWriter:
             ncols = 0
         else:
             raise ValueError(bits)
-        self.linesize = align32((self.width * self.bits + 7) // 8)
-        self.datasize = self.linesize * self.height
-        headersize = 14 + 40 + ncols * 4
+        self.line_size = align32((self.width * self.bits + 7) // 8)
+        self.data_size = self.line_size * self.height
+        header_size = 14 + 40 + ncols * 4
         info = struct.pack(
             "<IiiHHIIIIII",
             40,
@@ -152,7 +118,7 @@ class BMPWriter:
             1,
             self.bits,
             0,
-            self.datasize,
+            self.data_size,
             0,
             0,
             ncols,
@@ -160,7 +126,13 @@ class BMPWriter:
         )
         assert len(info) == 40, len(info)
         header = struct.pack(
-            "<ccIHHI", b"B", b"M", headersize + self.datasize, 0, 0, headersize
+            "<ccIHHI",
+            b"B",
+            b"M",
+            header_size + self.data_size,
+            0,
+            0,
+            header_size,
         )
         assert len(header) == 14, len(header)
         self.fp.write(header)
@@ -174,11 +146,11 @@ class BMPWriter:
             for i in range(256):
                 self.fp.write(struct.pack("BBBx", i, i, i))
         self.pos0 = self.fp.tell()
-        self.pos1 = self.pos0 + self.datasize
+        self.pos1 = self.pos0 + self.data_size
         return
 
     def write_line(self, y, data):
-        self.fp.seek(self.pos1 - (y + 1) * self.linesize)
+        self.fp.seek(self.pos1 - (y + 1) * self.line_size)
         self.fp.write(data)
         return
 
