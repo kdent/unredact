@@ -10,12 +10,20 @@ original formatting as possible in a new unredacted PDF.
 also removes all-black images that are sometimes placed over text and images.
 I'm not sure that copy-paste works in that case.
 
+
+## Requirements
+- Python 🐍 version >= v`3.9`
+
+## Running unredact
+
+It's recommended that you use a virtual environment to run unredact. For setup instructions, please follow this link: [Link](https://promisefalaye.hashnode.dev/how-to-set-up-python-virtual-environments-and-why-it-is-a-good-choice)
+
 Usage:
 ```
     $ ./unredact <redacted-pdf-file>
 ```
 
-Executing the script will produce a new PDF file named the same as the orginal
+Executing the script will produce a new PDF file named the same as the original
 document but with '-unredacted' appended to the end of the name.
 
 ## What is redaction?
