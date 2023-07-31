@@ -44,7 +44,7 @@ def get_output_filename(input_filepath):
 def print_char(canvas, char_element):
     attrs = char_element.__dict__
     fontname = attrs["fontname"]
-    fontname = re.sub("^[A-Z]{6}\+", "", fontname)
+    fontname = re.sub(r"^[A-Z]{6}\+", "", fontname)
     if fontname in FONTS:
         fontname = FONTS[fontname]
     try:
@@ -143,6 +143,7 @@ class BMPWriter:
         return
 
     def write_line(self, y, data):
+        """Write line to file."""
         self.fp.seek(self.pos1 - (y + 1) * self.line_size)
         self.fp.write(data)
         return
@@ -151,6 +152,7 @@ class BMPWriter:
 def save_image(image, fp):
     """
     Format raw image data and save it to the file pointer in fp.
+
     This code is taken from the pdfminer.image source code and revised
     to work without actually writing the image data to a literal file.
     """
