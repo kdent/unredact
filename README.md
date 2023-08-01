@@ -12,7 +12,7 @@ I'm not sure that copy-paste works in that case.
 
 
 ## Requirements
-- Python 🐍 version >= v`3.9`
+- Python 🐍 version >= v`3.11`
 
 ## Running unredact
 
