@@ -56,10 +56,8 @@ content redacted.
 ## About `unredact.py`
 
 The script depends on the `pdfminer.six`, `reportlab` and `PIL` modules. So
-those must be installed before running it. It's meant to be as simple as
-possible and, so far, runs without any external dependencies or configuration
-files. This may change in the future as more and more complicated features are
-added.
+those must be installed before running it. Some older but still helpful 
+documentation for pdfminer is available [here](https://buildmedia.readthedocs.org/media/pdf/pdfminer-docs/latest/pdfminer-docs.pdf).
 
 The script is in a very early stage. While it has been run over many PDF files,
 caution: it has been run against exactly one weakly redacted document. If you
