@@ -42,6 +42,12 @@ def get_output_filename(input_filepath):
 
 
 def print_char(canvas, char_element):
+    """
+    Add a single character to the canvas.
+
+    Adds the character in char_element using formatting from the original
+    PDF document.
+    """
     attrs = char_element.__dict__
     fontname = attrs["fontname"]
     fontname = re.sub(r"^[A-Z]{6}\+", "", fontname)
@@ -66,6 +72,7 @@ def print_char(canvas, char_element):
 
 
 def print_text_line(canvas, text_line_element):
+    """Process a PDF LTTextLine containing a list of LTChar or LTAnno objects."""
     for ele in text_line_element:
         if isinstance(ele, LTChar):
             print_char(canvas, ele)
@@ -83,10 +90,13 @@ def print_text_line(canvas, text_line_element):
 # save_image() which is revised from pdfminer.image.export_image().
 #
 def align32(x):
+    """Calculate the alignment of an image with the line its on."""
     return ((x + 3) // 4) * 4
 
 
 class BMPWriter:
+    """Determine the image type and its colorspace."""
+
     def __init__(self, fp, bits, width, height):
         self.fp = fp
         self.bits = bits
@@ -143,7 +153,7 @@ class BMPWriter:
         return
 
     def write_line(self, y, data):
-        """Write line to file."""
+        """Write a line of bitmap image data to a file."""
         self.fp.seek(self.pos1 - (y + 1) * self.line_size)
         self.fp.write(data)
         return
@@ -246,6 +256,7 @@ def set_canvas_colors(canvas, stroke_color, fill_color):
 
 
 def print_image(canvas, element):
+    """Write an image to the canvas."""
     attrs = element.__dict__
     width = attrs["width"]
     height = attrs["height"]
