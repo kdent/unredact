@@ -21,7 +21,7 @@ jobs:
       - uses: isort/isort-action@master
         with:
           configuration: --check-only --diff
-          requirementsFiles: pyproject.toml
+          requirementsFiles: setup.cfg
   Ruff:
     runs-on: ubuntu-latest
     steps:
