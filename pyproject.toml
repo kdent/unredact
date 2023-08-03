@@ -2,18 +2,17 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[black]
-max-line-length = 80
+[tool.black]
 line-length = 80
 
-[ruff]
+[tool.ruff]
 fix=true
 line-length = 80
 target-version = "py311"
 select = ["D"]
 
-[ruff.extend-per-file-ignores]
-__init__.py = ["D104"]
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["D104"]
 
-[ruff.pydocstyle]
+[tool.ruff.pydocstyle]
 convention = "numpy"
