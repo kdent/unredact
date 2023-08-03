@@ -3,6 +3,6 @@
 
 .PHONY: lint
 lint:
-	black ./unredact
-	isort ./unredact
-	ruff ./unredact
+	black ./unredact ./*.py
+	isort ./unredact ./*.py
+	ruff ./unredact ./*.py
