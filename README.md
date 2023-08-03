@@ -22,7 +22,7 @@ $ pip install -e .
 
 Usage:
 ```shell
-$ python -m unredact <redacted-pdf-file-path>
+$ python ./unredact.py <redacted-pdf-file-path>
 ```
 
 Executing the script will produce a new PDF file named the same as the original
