@@ -30,7 +30,7 @@ from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from unredact.utils.constants import DEFAULT_FONT, FONTS
+from utils.constants import DEFAULT_FONT, FONTS
 
 
 def get_output_filename(input_filepath):
