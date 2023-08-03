@@ -10,12 +10,22 @@ original formatting as possible in a new unredacted PDF.
 also removes all-black images that are sometimes placed over text and images.
 I'm not sure that copy-paste works in that case.
 
-Usage:
-```
-    $ ./unredact <redacted-pdf-file>
+
+## Requirements
+- Python 🐍 version >= v`3.8`
+
+## Running unredact
+To install the needed packages for this application, run the command below:
+```shell
+$ pip install -e .
 ```
 
-Executing the script will produce a new PDF file named the same as the orginal
+Usage:
+```shell
+$ python ./unredact.py <redacted-pdf-file-path>
+```
+
+Executing the script will produce a new PDF file named the same as the original
 document but with '-unredacted' appended to the end of the name.
 
 ## What is redaction?
@@ -41,12 +51,9 @@ documents from government agencies often result in documents with some of the
 content redacted.
 
 ## About `unredact.py`
-
 The script depends on the `pdfminer.six`, `reportlab` and `PIL` modules. So
-those must be installed before running it. It's meant to be as simple as
-possible and, so far, runs without any external dependencies or configuration
-files. This may change in the future as more and more complicated features are
-added.
+those must be installed before running it. Some older but still helpful 
+documentation for pdfminer is available [here](https://buildmedia.readthedocs.org/media/pdf/pdfminer-docs/latest/pdfminer-docs.pdf).
 
 The script is in a very early stage. While it has been run over many PDF files,
 caution: it has been run against exactly one weakly redacted document. If you
@@ -70,3 +77,6 @@ the background. The code should figure out and fix the transparency when it
 exists.
 * Some unredacted files are much bigger than the original file.
 
+
+## Dev commands
+`make lint`: Runs `black`, `ruff`, and `isort` over the code files.
