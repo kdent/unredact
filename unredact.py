@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
 """Top level driver script for unredacting PDF files."""
 
 import sys
+
 import unredact
 
 if len(sys.argv) != 2:
