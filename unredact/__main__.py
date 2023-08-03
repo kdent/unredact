@@ -343,7 +343,7 @@ if __name__ == "__main__":
 
                 # Skip redaction boxes
                 if (
-                    attrs["fill"] == True
+                    attrs["fill"] is True
                     and attrs["non_stroking_color"] in [None, 0]
                     and attrs["height"] > 2
                 ):
