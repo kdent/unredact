@@ -10,6 +10,6 @@
 <!--- These are suggested things you could add, but what you add will be dependent on your repository's standards. --->
 - [ ] The code runs successfully.
 
-```console
+```terminal
 HERE IS SOME COMMAND LINE OUTPUT
 ```
