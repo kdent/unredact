@@ -12,15 +12,12 @@ I'm not sure that copy-paste works in that case.
 
 
 ## Requirements
-- Python 🐍 version >= v`3.11`
+- Python 🐍 version >= v`3.8`
 
 ## Running unredact
-
-Make sure you have Poetry installed, directions to do that can be found in this link: [Link](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment)
-
-For details on Poetry activation, you can follow this link: [Link](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment), OR simply activate your Poetry environment via this command:
+To install the needed packages for this application, run the command below:
 ```shell
-$ poetry shell
+$ pip install -e .
 ```
 
 Usage:
@@ -54,7 +51,6 @@ documents from government agencies often result in documents with some of the
 content redacted.
 
 ## About `unredact.py`
-
 The script depends on the `pdfminer.six`, `reportlab` and `PIL` modules. So
 those must be installed before running it. Some older but still helpful 
 documentation for pdfminer is available [here](https://buildmedia.readthedocs.org/media/pdf/pdfminer-docs/latest/pdfminer-docs.pdf).
