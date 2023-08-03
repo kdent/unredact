@@ -4,3 +4,4 @@ build-backend = "setuptools.build_meta"
 
 [black]
 max-line-length = 80
+line-length = 80
