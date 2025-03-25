@@ -1,4 +1,4 @@
-"""Contains all code needed to unredact weak redactions from the requested PDF."""
+"""Contains all code needed to unredact weak redactions from the provided PDF."""
 import pathlib
 import re
 import struct
@@ -77,7 +77,7 @@ def print_text_line(canvas, text_line_element):
         if isinstance(ele, LTChar):
             print_char(canvas, ele)
         elif isinstance(ele, LTAnno):
-            None  # TODO: Not sure what to do with Annotations
+            None  # TODO: Decide what to do with Annotations
         else:
             print("*******", type(ele))
             print(ele.__dict__)
@@ -90,7 +90,7 @@ def print_text_line(canvas, text_line_element):
 # save_image() which is revised from pdfminer.image.export_image().
 #
 def align32(x):
-    """Calculate the alignment of an image with the line its on."""
+    """Calculate the alignment of an image with the line it's on."""
     return ((x + 3) // 4) * 4
 
 
