@@ -37,7 +37,7 @@ similar fashion. When done properly, redactions cannot be reversed. But in some
 circumstances redacted text can be revealed by simply copying the covered text,
 including the text that is blacked out and pasting it into another document.
 
-These poorly done or weak redactions are [more
+These poorly done or [weak](https://www.cjr.org/local_news/redaction-sun-sentinel.php) redactions are [more
 common](https://www.americanbar.org/groups/judicial/publications/judges_journal/2019/spring/embarrassing-redaction-failures/)
 than you might think and have been the source of valuable information for 
 investigative journalists, for example. Freedom of Information requests seeking
