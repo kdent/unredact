@@ -74,3 +74,8 @@ exists.
 
 ## Dev commands
 `make lint`: Runs `black`, `ruff`, and `isort` over the code files.
+
+## Related Projects
+* [X-Ray Bad Redaction Detector](https://free.law/projects/x-ray), from the
+Free Law Project, detects bounding boxes and underlying text for bad
+redactions.
