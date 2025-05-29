@@ -1,4 +1,5 @@
 """Contains all code needed to unredact weak redactions from the provided PDF."""
+
 import pathlib
 import re
 import struct
