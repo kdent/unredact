@@ -408,4 +408,3 @@ def main(input_pdf, output_pdf):
     print()
 
     document_fp.close()
-    print(ERRORS)
