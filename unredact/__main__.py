@@ -64,8 +64,8 @@ def print_char(canvas, char_element):
         if str(err) not in ERRORS:
             print("unknown font:", err, "falling back to", DEFAULT_FONT)
             print(
-                "But you can add this font to the FONTS in the constants file to "
-                "improve the output."
+                "But you can add this font to the FONTS in the constants file" \
+                "to improve the output."
             )
             ERRORS.append(str(err))
         canvas.setFont(DEFAULT_FONT, attrs["size"])
