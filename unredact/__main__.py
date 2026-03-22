@@ -33,6 +33,10 @@ from reportlab.pdfgen import canvas
 
 from unredact.utils.constants import DEFAULT_FONT, FONTS
 
+# Global list of errors already seen. Enables suppression of the same
+# error being reported multiple times.
+ERRORS = []
+
 
 def get_output_filename(input_filepath):
     """Retrieve the output file name."""
@@ -57,11 +61,13 @@ def print_char(canvas, char_element):
     try:
         canvas.setFont(fontname, attrs["size"])
     except KeyError as err:
-        print("unknown font:", err, "falling back to", DEFAULT_FONT)
-        print(
-            "But you can add this font to the FONTS in the constants file to "
-            "improve the output."
-        )
+        if str(err) not in ERRORS:
+            print("unknown font:", err, "falling back to", DEFAULT_FONT)
+            print(
+                "But you can add this font to the FONTS in the constants file to "
+                "improve the output."
+            )
+            ERRORS.append(str(err))
         canvas.setFont(DEFAULT_FONT, attrs["size"])
 
     set_canvas_colors(
@@ -402,3 +408,4 @@ def main(input_pdf, output_pdf):
     print()
 
     document_fp.close()
+    print(ERRORS)
