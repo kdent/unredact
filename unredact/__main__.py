@@ -1,4 +1,4 @@
-"""Contains all code needed to unredact weak redactions from the provided PDF."""
+"""Contains code needed to unredact weak redactions from the provided PDF."""
 
 import pathlib
 import re
@@ -25,13 +25,20 @@ from pdfminer.pdfcolor import (
     LITERAL_DEVICE_GRAY,
     LITERAL_DEVICE_RGB,
 )
-from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+from pdfminer.pdfinterp import (
+    PDFPageInterpreter,
+    PDFResourceManager,
+)
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 from unredact.utils.constants import DEFAULT_FONT, FONTS
+
+# Global list of errors already seen. Enables suppression of the same
+# error being reported multiple times.
+ERRORS = []
 
 
 def get_output_filename(input_filepath):
@@ -57,11 +64,18 @@ def print_char(canvas, char_element):
     try:
         canvas.setFont(fontname, attrs["size"])
     except KeyError as err:
-        print("unknown font:", err, "falling back to", DEFAULT_FONT)
-        print(
-            "But you can add this font to the FONTS in the constants file to "
-            "improve the output."
-        )
+        if str(err) not in ERRORS:
+            print(
+                "unknown font:",
+                err,
+                "falling back to",
+                DEFAULT_FONT,
+            )
+            print(
+                "But you can add this font to the FONTS in the constants file"
+                "to improve the output."
+            )
+            ERRORS.append(str(err))
         canvas.setFont(DEFAULT_FONT, attrs["size"])
 
     set_canvas_colors(
@@ -73,7 +87,7 @@ def print_char(canvas, char_element):
 
 
 def print_text_line(canvas, text_line_element):
-    """Process a PDF LTTextLine containing a list of LTChar or LTAnno objects."""
+    """Process PDF LTTextLine containing a list of LTChar or LTAnno objects."""
     for ele in text_line_element:
         if isinstance(ele, LTChar):
             print_char(canvas, ele)
@@ -169,7 +183,7 @@ def save_image(image, fp):
     """
     stream = image.stream
     filters = stream.get_filters()
-    (width, height) = image.srcsize
+    width, height = image.srcsize
     if len(filters) == 1 and filters[0][0] in LITERALS_DCT_DECODE:
         ext = ".jpg"
     elif (
@@ -257,7 +271,10 @@ def set_canvas_colors(canvas, stroke_color, fill_color):
 
     # Set the fill color
     if fill_color is not None:
-        if isinstance(fill_color, float) or fill_color in [0, 1]:
+        if isinstance(fill_color, float) or fill_color in [
+            0,
+            1,
+        ]:
             canvas.setFillGray(fill_color)
         else:
             canvas.setFillColorRGB(*fill_color)
@@ -281,7 +298,11 @@ def print_image(canvas, element):
         return
 
     canvas.drawImage(
-        ImageReader(img), attrs["x0"], attrs["y0"], width=width, height=height
+        ImageReader(img),
+        attrs["x0"],
+        attrs["y0"],
+        width=width,
+        height=height,
     )
 
 
@@ -304,7 +325,12 @@ def main(input_pdf, output_pdf):
         print(".", end="", flush=True)
         interpreter.process_page(page)
         layout = device.get_result()
-        c.setPageSize((layout.__dict__["width"], layout.__dict__["height"]))
+        c.setPageSize(
+            (
+                layout.__dict__["width"],
+                layout.__dict__["height"],
+            )
+        )
 
         for element in layout:
             if isinstance(element, LTFigure):
@@ -315,7 +341,11 @@ def main(input_pdf, output_pdf):
                         # Print something out to indicate this has to be
                         # handled.
                         print("####")
-                        print(type(subel), "        ", subel.__dict__)
+                        print(
+                            type(subel),
+                            "        ",
+                            subel.__dict__,
+                        )
 
             elif isinstance(element, LTImage):
                 print_image(c, element)
@@ -336,9 +366,16 @@ def main(input_pdf, output_pdf):
                 attrs = element.__dict__
                 c.setLineWidth(attrs["linewidth"] / 10)
                 set_canvas_colors(
-                    c, attrs["stroking_color"], attrs["non_stroking_color"]
+                    c,
+                    attrs["stroking_color"],
+                    attrs["non_stroking_color"],
                 )
-                c.line(attrs["x0"], attrs["y0"], attrs["x1"], attrs["y1"])
+                c.line(
+                    attrs["x0"],
+                    attrs["y0"],
+                    attrs["x1"],
+                    attrs["y1"],
+                )
 
             elif isinstance(element, LTRect):
                 attrs = element.__dict__
@@ -361,7 +398,9 @@ def main(input_pdf, output_pdf):
 
                 c.setLineWidth(attrs["linewidth"] / 10)
                 set_canvas_colors(
-                    c, attrs["stroking_color"], attrs["non_stroking_color"]
+                    c,
+                    attrs["stroking_color"],
+                    attrs["non_stroking_color"],
                 )
 
                 c.rect(
@@ -377,14 +416,20 @@ def main(input_pdf, output_pdf):
                 attrs = element.__dict__
                 c.setLineWidth(attrs["linewidth"] / 10)
                 set_canvas_colors(
-                    c, attrs["stroking_color"], attrs["non_stroking_color"]
+                    c,
+                    attrs["stroking_color"],
+                    attrs["non_stroking_color"],
                 )
                 p = c.beginPath()
                 p.moveTo(attrs["x0"], attrs["y0"])
                 for x, y in attrs["pts"]:
                     p.lineTo(x, y)
 
-                c.drawPath(p, fill=attrs["fill"], stroke=attrs["stroke"])
+                c.drawPath(
+                    p,
+                    fill=attrs["fill"],
+                    stroke=attrs["stroke"],
+                )
 
             else:
                 # Print out attribute information to indicate that this has
