@@ -25,7 +25,10 @@ from pdfminer.pdfcolor import (
     LITERAL_DEVICE_GRAY,
     LITERAL_DEVICE_RGB,
 )
-from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
+from pdfminer.pdfinterp import (
+    PDFPageInterpreter,
+    PDFResourceManager,
+)
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
@@ -42,7 +45,11 @@ def get_output_filename(input_filepath):
     """Retrieve the output file name."""
     file_path = pathlib.Path(input_filepath)
     return str(
-        file_path.with_name(file_path.stem + "-unredacted" + file_path.suffix)
+        file_path.with_name(
+            file_path.stem
+            + "-unredacted"
+            + file_path.suffix
+        )
     )
 
 
@@ -62,9 +69,14 @@ def print_char(canvas, char_element):
         canvas.setFont(fontname, attrs["size"])
     except KeyError as err:
         if str(err) not in ERRORS:
-            print("unknown font:", err, "falling back to", DEFAULT_FONT)
             print(
-                "But you can add this font to the FONTS in the constants file" \
+                "unknown font:",
+                err,
+                "falling back to",
+                DEFAULT_FONT,
+            )
+            print(
+                "But you can add this font to the FONTS in the constants file"
                 "to improve the output."
             )
             ERRORS.append(str(err))
@@ -75,11 +87,13 @@ def print_char(canvas, char_element):
         char_element.graphicstate.scolor,
         char_element.graphicstate.ncolor,
     )
-    canvas.drawString(attrs["x0"], attrs["y0"], text=attrs["_text"])
+    canvas.drawString(
+        attrs["x0"], attrs["y0"], text=attrs["_text"]
+    )
 
 
 def print_text_line(canvas, text_line_element):
-    """Process a PDF LTTextLine containing a list of LTChar or LTAnno objects."""
+    """Process PDF LTTextLine containing a list of LTChar or LTAnno objects."""
     for ele in text_line_element:
         if isinstance(ele, LTChar):
             print_char(canvas, ele)
@@ -117,7 +131,9 @@ class BMPWriter:
             num_cols = 0
         else:
             raise ValueError(bits)
-        self.line_size = align32((self.width * self.bits + 7) // 8)
+        self.line_size = align32(
+            (self.width * self.bits + 7) // 8
+        )
         self.data_size = self.line_size * self.height
         header_size = 14 + 40 + num_cols * 4
         info = struct.pack(
@@ -176,12 +192,16 @@ def save_image(image, fp):
     stream = image.stream
     filters = stream.get_filters()
     (width, height) = image.srcsize
-    if len(filters) == 1 and filters[0][0] in LITERALS_DCT_DECODE:
+    if (
+        len(filters) == 1
+        and filters[0][0] in LITERALS_DCT_DECODE
+    ):
         ext = ".jpg"
     elif (
         image.bits == 1
         or image.bits == 8
-        and image.colorspace in (LITERAL_DEVICE_RGB, LITERAL_DEVICE_GRAY)
+        and image.colorspace
+        in (LITERAL_DEVICE_RGB, LITERAL_DEVICE_GRAY)
     ):
         ext = ".%dx%d.bmp" % (width, height)
     else:
@@ -207,7 +227,10 @@ def save_image(image, fp):
         for y in range(height):
             bmp.write_line(y, data[i : i + width])
             i += width
-    elif image.bits == 8 and image.colorspace is LITERAL_DEVICE_RGB:
+    elif (
+        image.bits == 8
+        and image.colorspace is LITERAL_DEVICE_RGB
+    ):
         bmp = BMPWriter(fp, 24, width, height)
         data = stream.get_data()
         i = 0
@@ -215,7 +238,10 @@ def save_image(image, fp):
         for y in range(height):
             bmp.write_line(y, data[i : i + width])
             i += width
-    elif image.bits == 8 and image.colorspace is LITERAL_DEVICE_GRAY:
+    elif (
+        image.bits == 8
+        and image.colorspace is LITERAL_DEVICE_GRAY
+    ):
         bmp = BMPWriter(fp, 8, width, height)
         data = stream.get_data()
         i = 0
@@ -237,7 +263,10 @@ def save_image(image, fp):
         for y in range(height):
             bmp.write_line(y, data[i : i + width])
             i += width
-    elif image.bits == 8 and image.colorspace is LITERAL_DEVICE_GRAY:
+    elif (
+        image.bits == 8
+        and image.colorspace is LITERAL_DEVICE_GRAY
+    ):
         bmp = BMPWriter(fp, 8, width, height)
         data = stream.get_data()
         i = 0
@@ -256,14 +285,19 @@ def set_canvas_colors(canvas, stroke_color, fill_color):
     """Set canvas stroke and fill colors."""
     # Set the stroke color
     if stroke_color is not None:
-        if isinstance(stroke_color, float) or stroke_color in [0, 1]:
+        if isinstance(
+            stroke_color, float
+        ) or stroke_color in [0, 1]:
             canvas.setStrokeGray(stroke_color)
         else:
             canvas.setStrokeColorRGB(*stroke_color)
 
     # Set the fill color
     if fill_color is not None:
-        if isinstance(fill_color, float) or fill_color in [0, 1]:
+        if isinstance(fill_color, float) or fill_color in [
+            0,
+            1,
+        ]:
             canvas.setFillGray(fill_color)
         else:
             canvas.setFillColorRGB(*fill_color)
@@ -287,7 +321,11 @@ def print_image(canvas, element):
         return
 
     canvas.drawImage(
-        ImageReader(img), attrs["x0"], attrs["y0"], width=width, height=height
+        ImageReader(img),
+        attrs["x0"],
+        attrs["y0"],
+        width=width,
+        height=height,
     )
 
 
@@ -297,7 +335,9 @@ def main(input_pdf, output_pdf):
 
     rsrc_mngr = PDFResourceManager()
     la_params = LAParams()
-    device = PDFPageAggregator(rsrc_mngr, laparams=la_params)
+    device = PDFPageAggregator(
+        rsrc_mngr, laparams=la_params
+    )
     interpreter = PDFPageInterpreter(rsrc_mngr, device)
 
     c = canvas.Canvas(output_pdf, pageCompression=1)
@@ -310,7 +350,12 @@ def main(input_pdf, output_pdf):
         print(".", end="", flush=True)
         interpreter.process_page(page)
         layout = device.get_result()
-        c.setPageSize((layout.__dict__["width"], layout.__dict__["height"]))
+        c.setPageSize(
+            (
+                layout.__dict__["width"],
+                layout.__dict__["height"],
+            )
+        )
 
         for element in layout:
             if isinstance(element, LTFigure):
@@ -321,7 +366,11 @@ def main(input_pdf, output_pdf):
                         # Print something out to indicate this has to be
                         # handled.
                         print("####")
-                        print(type(subel), "        ", subel.__dict__)
+                        print(
+                            type(subel),
+                            "        ",
+                            subel.__dict__,
+                        )
 
             elif isinstance(element, LTImage):
                 print_image(c, element)
@@ -331,7 +380,9 @@ def main(input_pdf, output_pdf):
 
             elif isinstance(element, LTTextBoxHorizontal):
                 for subel in element:
-                    if isinstance(subel, LTTextLineHorizontal):
+                    if isinstance(
+                        subel, LTTextLineHorizontal
+                    ):
                         #                        print_text_line(c, subel)
                         text_lines.append(subel)
 
@@ -342,9 +393,16 @@ def main(input_pdf, output_pdf):
                 attrs = element.__dict__
                 c.setLineWidth(attrs["linewidth"] / 10)
                 set_canvas_colors(
-                    c, attrs["stroking_color"], attrs["non_stroking_color"]
+                    c,
+                    attrs["stroking_color"],
+                    attrs["non_stroking_color"],
                 )
-                c.line(attrs["x0"], attrs["y0"], attrs["x1"], attrs["y1"])
+                c.line(
+                    attrs["x0"],
+                    attrs["y0"],
+                    attrs["x1"],
+                    attrs["y1"],
+                )
 
             elif isinstance(element, LTRect):
                 attrs = element.__dict__
@@ -352,7 +410,8 @@ def main(input_pdf, output_pdf):
                 # Skip redaction boxes
                 if (
                     attrs["fill"] is True
-                    and attrs["non_stroking_color"] in [None, 0]
+                    and attrs["non_stroking_color"]
+                    in [None, 0]
                     and attrs["height"] > 2
                 ):
                     continue
@@ -367,7 +426,9 @@ def main(input_pdf, output_pdf):
 
                 c.setLineWidth(attrs["linewidth"] / 10)
                 set_canvas_colors(
-                    c, attrs["stroking_color"], attrs["non_stroking_color"]
+                    c,
+                    attrs["stroking_color"],
+                    attrs["non_stroking_color"],
                 )
 
                 c.rect(
@@ -383,14 +444,20 @@ def main(input_pdf, output_pdf):
                 attrs = element.__dict__
                 c.setLineWidth(attrs["linewidth"] / 10)
                 set_canvas_colors(
-                    c, attrs["stroking_color"], attrs["non_stroking_color"]
+                    c,
+                    attrs["stroking_color"],
+                    attrs["non_stroking_color"],
                 )
                 p = c.beginPath()
                 p.moveTo(attrs["x0"], attrs["y0"])
                 for x, y in attrs["pts"]:
                     p.lineTo(x, y)
 
-                c.drawPath(p, fill=attrs["fill"], stroke=attrs["stroke"])
+                c.drawPath(
+                    p,
+                    fill=attrs["fill"],
+                    stroke=attrs["stroke"],
+                )
 
             else:
                 # Print out attribute information to indicate that this has
