@@ -261,7 +261,7 @@ def save_image(image, fp):
 def set_canvas_colors(canvas, stroke_color, fill_color):
     """Set canvas stroke and fill colors."""
     # Set the stroke color
-    if not stroke_color or len(stroke_color) < 3:
+    if not stroke_color or (type(stroke_color) == list and len(stroke_color) < 3):
         canvas.setStrokeColorRGB(0, 0, 0)
     else:
         if isinstance(stroke_color, float) or stroke_color in [0, 1]:
@@ -270,7 +270,7 @@ def set_canvas_colors(canvas, stroke_color, fill_color):
             canvas.setStrokeColorRGB(*stroke_color)
 
     # Set the fill color
-    if not fill_color or len(fill_color) < 3:
+    if not fill_color or (type(fill_color) == list and len(fill_color) < 3):
         canvas.setFillColorRGB(0, 0, 0)
     else:
         if isinstance(fill_color, float) or fill_color in [
