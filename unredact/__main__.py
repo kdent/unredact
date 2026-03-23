@@ -25,10 +25,7 @@ from pdfminer.pdfcolor import (
     LITERAL_DEVICE_GRAY,
     LITERAL_DEVICE_RGB,
 )
-from pdfminer.pdfinterp import (
-    PDFPageInterpreter,
-    PDFResourceManager,
-)
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
@@ -312,11 +309,22 @@ def print_image(canvas, element):
 
 
 def handleRect(c, element):
+    """
+    Handle Rect instances while parsing PDF file.
+
+    Since rectangles are usually how redactions are handled in the PDF, this
+    code includes logic to infer that a given Rect is actually a black bar
+    going over the text.
+    """
     attrs = element.__dict__
 
-    # Skip redaction boxes
-    if ( attrs["fill"] is True and attrs["non_stroking_color"] in [None, 0]
-    and attrs["height"] > 2):
+    # Skip redaction boxes. Checks for rectangles taller than 2 filled in as
+    # all black.
+    if (
+        attrs["fill"] is True
+        and attrs["non_stroking_color"] in [None, 0]
+        and attrs["height"] > 2
+    ):
         return
 
     # This is a hack and I don't know if it will mess up other
@@ -345,6 +353,13 @@ def handleRect(c, element):
 
 
 def handleLTFigure(c, element):
+    """
+    Handle LT Figure instances while parsing PDF file.
+
+    A Figure might include other elements, so this code also checks
+    subelements of the figure to process them as well. This function can also
+    be called recursively since LTFigures can contain other LTFIgures.
+    """
     for subel in element:
         if isinstance(subel, LTImage):
             print_image(c, subel)
@@ -352,13 +367,17 @@ def handleLTFigure(c, element):
             print_char(c, subel)
         elif isinstance(subel, LTRect):
             handleRect(c, subel)
-        elif isinstance(subel,LTFigure):
+        elif isinstance(subel, LTFigure):
             handleLTFigure(c, subel)
         else:
             # Print something out to indicate this has to be
             # handled.
             print("#### No handler available")
-            print(type(subel), "        ", subel.__dict__,)
+            print(
+                type(subel),
+                "        ",
+                subel.__dict__,
+            )
 
 
 def main(input_pdf, output_pdf):
