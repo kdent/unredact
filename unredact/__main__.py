@@ -25,10 +25,7 @@ from pdfminer.pdfcolor import (
     LITERAL_DEVICE_GRAY,
     LITERAL_DEVICE_RGB,
 )
-from pdfminer.pdfinterp import (
-    PDFPageInterpreter,
-    PDFResourceManager,
-)
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
@@ -57,12 +54,13 @@ def print_char(canvas, char_element):
     PDF document.
     """
     attrs = char_element.__dict__
-    fontname = attrs["fontname"]
+    fontname = attrs.get("fontname", DEFAULT_FONT)
     fontname = re.sub(r"^[A-Z]{6}\+", "", fontname)
+    fontsize = attrs["size"]
     if fontname in FONTS:
         fontname = FONTS[fontname]
     try:
-        canvas.setFont(fontname, attrs["size"])
+        canvas.setFont(fontname, fontsize)
     except KeyError as err:
         if str(err) not in ERRORS:
             print(
@@ -72,11 +70,11 @@ def print_char(canvas, char_element):
                 DEFAULT_FONT,
             )
             print(
-                "But you can add this font to the FONTS in the constants file"
+                "But you can add this font to the FONTS in the constants file "
                 "to improve the output."
             )
             ERRORS.append(str(err))
-        canvas.setFont(DEFAULT_FONT, attrs["size"])
+        canvas.setFont(DEFAULT_FONT, fontsize)
 
     set_canvas_colors(
         canvas,
@@ -263,14 +261,18 @@ def save_image(image, fp):
 def set_canvas_colors(canvas, stroke_color, fill_color):
     """Set canvas stroke and fill colors."""
     # Set the stroke color
-    if stroke_color is not None:
+    if not stroke_color or len(stroke_color) < 3:
+        canvas.setStrokeColorRGB(0, 0, 0)
+    else:
         if isinstance(stroke_color, float) or stroke_color in [0, 1]:
             canvas.setStrokeGray(stroke_color)
         else:
             canvas.setStrokeColorRGB(*stroke_color)
 
     # Set the fill color
-    if fill_color is not None:
+    if not fill_color or len(fill_color) < 3:
+        canvas.setFillColorRGB(0, 0, 0)
+    else:
         if isinstance(fill_color, float) or fill_color in [
             0,
             1,
@@ -306,6 +308,78 @@ def print_image(canvas, element):
     )
 
 
+def handleRect(c, element):
+    """
+    Handle Rect instances while parsing PDF file.
+
+    Since rectangles are usually how redactions are handled in the PDF, this
+    code includes logic to infer that a given Rect is actually a black bar
+    going over the text.
+    """
+    attrs = element.__dict__
+
+    # Skip redaction boxes. Checks for rectangles taller than 2 filled in as
+    # all black.
+    if (
+        attrs["fill"] is True
+        and attrs["non_stroking_color"] in [None, 0]
+        and attrs["height"] > 2
+    ):
+        return
+
+    # This is a hack and I don't know if it will mess up other
+    # docs.  Lines used as underscores are too high up and cross
+    # through the words they underline. I make an adjustment here
+    # if it looks like a Rect is being used as an underline.
+    #                y_adjust = 0
+    #                if attrs['height'] < 1:
+    y_adjust = -3
+
+    c.setLineWidth(attrs["linewidth"] / 10)
+    set_canvas_colors(
+        c,
+        attrs["stroking_color"],
+        attrs["non_stroking_color"],
+    )
+
+    c.rect(
+        attrs["x0"],
+        attrs["y0"] + y_adjust,
+        attrs["width"],
+        attrs["height"],
+        stroke=attrs["stroke"],
+        fill=attrs["fill"],
+    )
+
+
+def handleLTFigure(c, element):
+    """
+    Handle LT Figure instances while parsing PDF file.
+
+    A Figure might include other elements, so this code also checks
+    subelements of the figure to process them as well. This function can also
+    be called recursively since LTFigures can contain other LTFIgures.
+    """
+    for subel in element:
+        if isinstance(subel, LTImage):
+            print_image(c, subel)
+        elif isinstance(subel, LTChar):
+            print_char(c, subel)
+        elif isinstance(subel, LTRect):
+            handleRect(c, subel)
+        elif isinstance(subel, LTFigure):
+            handleLTFigure(c, subel)
+        else:
+            # Print something out to indicate this has to be
+            # handled.
+            print("#### No handler available")
+            print(
+                type(subel),
+                "        ",
+                subel.__dict__,
+            )
+
+
 def main(input_pdf, output_pdf):
     """Process a PDF file."""
     document_fp = open(input_pdf, "rb")
@@ -316,7 +390,6 @@ def main(input_pdf, output_pdf):
     interpreter = PDFPageInterpreter(rsrc_mngr, device)
 
     c = canvas.Canvas(output_pdf, pageCompression=1)
-    print("creating", output_pdf, end="", flush=True)
 
     page_count = 0
     for page in PDFPage.get_pages(document_fp):
@@ -334,18 +407,7 @@ def main(input_pdf, output_pdf):
 
         for element in layout:
             if isinstance(element, LTFigure):
-                for subel in element:
-                    if isinstance(subel, LTImage):
-                        print_image(c, subel)
-                    else:
-                        # Print something out to indicate this has to be
-                        # handled.
-                        print("####")
-                        print(
-                            type(subel),
-                            "        ",
-                            subel.__dict__,
-                        )
+                handleLTFigure(c, element)
 
             elif isinstance(element, LTImage):
                 print_image(c, element)
@@ -378,39 +440,7 @@ def main(input_pdf, output_pdf):
                 )
 
             elif isinstance(element, LTRect):
-                attrs = element.__dict__
-
-                # Skip redaction boxes
-                if (
-                    attrs["fill"] is True
-                    and attrs["non_stroking_color"] in [None, 0]
-                    and attrs["height"] > 2
-                ):
-                    continue
-
-                # This is a hack and I don't know if it will mess up other
-                # docs.  Lines used as underscores are too high up and cross
-                # through the words they underline. I make an adjustment here
-                # if it looks like a Rect is being used as an underline.
-                #                y_adjust = 0
-                #                if attrs['height'] < 1:
-                y_adjust = -3
-
-                c.setLineWidth(attrs["linewidth"] / 10)
-                set_canvas_colors(
-                    c,
-                    attrs["stroking_color"],
-                    attrs["non_stroking_color"],
-                )
-
-                c.rect(
-                    attrs["x0"],
-                    attrs["y0"] + y_adjust,
-                    attrs["width"],
-                    attrs["height"],
-                    stroke=attrs["stroke"],
-                    fill=attrs["fill"],
-                )
+                handleRect(c, element)
 
             elif isinstance(element, LTCurve):
                 attrs = element.__dict__
@@ -442,8 +472,8 @@ def main(input_pdf, output_pdf):
 
         c.showPage()
 
-    print("saving", end="", flush=True)
     c.save()
     print()
+    print("saved", output_pdf, flush=True)
 
     document_fp.close()
