@@ -31,7 +31,7 @@ from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from unredact.utils.constants import DEFAULT_FONT, FONTS
+from unredact.utils.constants import DEFAULT_FONT, FONTS, UNREDACT_HIGHLIGHT_COLOR
 
 # Global list of errors already seen. Enables suppression of the same
 # error being reported multiple times.
@@ -319,6 +319,8 @@ def handleRect(c, element):
     going over the text.
     """
     attrs = element.__dict__
+    stroking_color = None
+    non_stroking_color = None
 
     # Skip redaction boxes. Checks for rectangles taller than 2 filled in as
     # all black.
@@ -327,7 +329,17 @@ def handleRect(c, element):
         and attrs["non_stroking_color"] in [None, 0]
         and attrs["height"] > 2
     ):
-        return
+        stroking_color = UNREDACT_HIGHLIGHT_COLOR
+        non_stroking_color = UNREDACT_HIGHLIGHT_COLOR
+    else:
+        stroking_color = attrs["stroking_color"]
+        non_stroking_color = attrs["non_stroking_color"]
+
+    set_canvas_colors(
+        c,
+        stroking_color,
+        non_stroking_color,
+    )
 
     # This is a hack and I don't know if it will mess up other
     # docs.  Lines used as underscores are too high up and cross
@@ -338,12 +350,7 @@ def handleRect(c, element):
     y_adjust = -3
 
     c.setLineWidth(attrs["linewidth"] / 10)
-    set_canvas_colors(
-        c,
-        attrs["stroking_color"],
-        attrs["non_stroking_color"],
-    )
-
+    
     c.rect(
         attrs["x0"],
         attrs["y0"] + y_adjust,
