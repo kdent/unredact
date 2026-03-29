@@ -1,7 +1,7 @@
 """Constants used throughout the unredact package."""
 
 DEFAULT_FONT = "Times-Roman"
-UNREDACT_HIGHLIGHT_COLOR = (0.847, 0.749, 0.847)     # Thistle color
+UNREDACT_HIGHLIGHT_COLOR = (0.847, 0.749, 0.847)  # Thistle color
 
 FONTS = {
     "TimesNewRomanPSMT": "Times-Roman",

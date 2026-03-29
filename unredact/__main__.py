@@ -31,7 +31,11 @@ from pdfminer.pdftypes import LITERALS_DCT_DECODE
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from unredact.utils.constants import DEFAULT_FONT, FONTS, UNREDACT_HIGHLIGHT_COLOR
+from unredact.utils.constants import (
+    DEFAULT_FONT,
+    FONTS,
+    UNREDACT_HIGHLIGHT_COLOR,
+)
 
 # Global list of errors already seen. Enables suppression of the same
 # error being reported multiple times.
@@ -350,7 +354,7 @@ def handleRect(c, element):
     y_adjust = -3
 
     c.setLineWidth(attrs["linewidth"] / 10)
-    
+
     c.rect(
         attrs["x0"],
         attrs["y0"] + y_adjust,
