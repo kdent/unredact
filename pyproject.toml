@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "unredact"
-version = "1.0"
-description = "Library and program to remove weak redactions from PDF files"
+dynamic = ["version"]
+description = "Program and library to remove weak redactions from PDF files"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

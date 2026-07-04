@@ -1,7 +1,19 @@
 
+import copy
 import os
 import pikepdf
-from .documentstate import DocState
+from .document_state import DocState
+from .state_stack import StateStack
+
+
+# TODO:
+# - check for transparency in the fill color per the Claude code chat
+# - Document all the functions, etc.
+
+# Warnings:
+# - there is plenty of code that has not been exercised because I do not have sample PDF files
+#   that would trigger the code. I should find or make up PDF files for various test cases to 
+#   make sure that there are test cases to get good coverage of the code.
 
 UNREDACT_HIGHLIGHT_COLOR = [0.847, 0.749, 0.847]  # Thistle color
 UNREDACT_HIGHLIGHT_PERCENTAGE = 0.5
@@ -19,7 +31,7 @@ class UnredactPdf:
     @classmethod
     def from_path(cls, file_path):
         """
-        Constructor to open a PDf file from a filepath
+        Constructor to open a PDF file from a filepath
         """
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"No file found at {file_path}")
@@ -42,20 +54,16 @@ class UnredactPdf:
         '''
             Set up page resources and dictionary value for unredacted highlighting transparency.
         '''
-        # 1. Ensure /Resources exists without destroying existing data
+        # Ensure /Resources exists without destroying existing data
         if "/Resources" not in page:
-            page.Resources = pikepdf.Dictionary()
-        
-        resources = page.Resources
+            page['/Resources'] = pikepdf.Dictionary()
+ 
+        # Ensure /ExtGState exists inside /Resources
+        if "/ExtGState" not in page['/Resources']:
+            page['/Resources']['/ExtGState'] = pikepdf.Dictionary()
 
-        # 2. Ensure /ExtGState exists inside /Resources
-        if "/ExtGState" not in resources:
-            resources.ExtGState = pikepdf.Dictionary()
-            
-        ext_g_state = resources.ExtGState
-
-        # 3. Add or update the /SemiTransparent state safely
-        ext_g_state["/SemiTransparent"] = pikepdf.Dictionary({
+        # Add or update the /SemiTransparent state safely
+        page["/Resources"]["/ExtGState"]["/SemiTransparent"] = pikepdf.Dictionary({
             "/Type": pikepdf.Name("/ExtGState"),
             "/ca": percentage,  # Fill alpha (transparency)
             "/CA": percentage   # Stroke alpha (good practice to include both)
@@ -96,26 +104,20 @@ class UnredactPdf:
         self.__set_transparency_on_page(page, UNREDACT_HIGHLIGHT_PERCENTAGE)
 
         # TODO: check the page dictionary to see if there is any color information
+        # already defined.
         current_state = DocState(rectangle_dimensions=[], fill_color=[0, 0, 0], color_space='rg')
-        
+        graphics_state_history = StateStack()
+        graphics_state_history.push(current_state)
+ 
         instructions = pikepdf.parse_content_stream(page)
         new_instructions = []
         
-        # Use a local boolean flag to track if the *immediate previous instruction* was a target rectangle
-        possible_redaction = False
-        fill_color_is_blank = False
-
-        # Iterate through the instructions to filter out the drawing shapes
         for operands, operator in instructions:
     
-            if operator == pikepdf.Operator('re'):
-                current_state.rectangle_dimensions = list(operands)
-                new_instructions.append((operands, operator))
-                continue
-    
-            # If it's the fill command belonging to a targeted rectangle
+            # If we encounter a fill (f) operator, check to see if it's a redaction
+            # to be intercepted.
             if operator == pikepdf.Operator('f'):
-                if self.__is_redaction(current_state, page):
+                if self.__is_redaction(graphics_state_history.peek(), page):
                     print("filling ")
                     # Inject transparent filling wrapped in state saves
                     new_instructions.append(([], pikepdf.Operator('q')))
@@ -129,20 +131,55 @@ class UnredactPdf:
                     new_instructions.append((operands, operator))
                 continue
 
+            # Here we check for any instructions that affect the graphics state
+            # which might influence a possible redaction. Most instructions will cause
+            # an update to the current_state object.
+            if operator == pikepdf.Operator('re'):
+                current_state = graphics_state_history.peek()
+                current_state.rectangle_dimensions = [float(x) for x in operands]
+                # Dimensions can be negative reflecting relative direction. Since
+                # we're concerned about the absolute size, we'll convert the
+                # height dimension to its absolute value
+                current_state.rectangle_dimensions[3] = abs(current_state.rectangle_dimensions[3])
+ 
             if operator == pikepdf.Operator('rg'):
+                current_state = graphics_state_history.peek()
                 current_state.color_space = 'rg'
                 current_state.fill_color = [float(x) for x in operands]
                 print("setting fill color to", current_state.fill_color)
+            if operator == pikepdf.Operator('k'):
+                current_state = graphics_state_history.peek()
+                current_state.color_space = 'k'
+                current_state.fill_color = [float(x) for x in operands]
+            if operator == pikepdf.Operator('g'):
+                current_state = graphics_state_history.peek()
+                current_state.color_space = 'g'
+                current_state.fill_color = [float(x) for x in operands]
 
-    #        if operator == pikepdf.Operator('Q'):   # TODO: fix logic to keep track of the state
-    #            fill_color_is_blank = False
+            if operator == pikepdf.Operator('cs'):
+                current_state = graphics_state_history.peek()
+                if operands == pikepdf.Name('/DeviceRGB'):
+                    current_state.color_space = 'rg'
+                if operands == pikepdf.Name('/DeviceCMYK'):
+                    current_state.color_space = 'k'
+                if operands == pikepdf.Name('/DeviceGray'):
+                    current_state.color_space = 'g'
 
-    #   Also check CMYK (k) and greyscale color space changes
+            if operator == pikepdf.Operator('sc'):
+                current_state = graphics_state_history.peek()
+                current_state.fill_color = [float(x) for x in operands]
 
+            # Here we check for changes to the graphics stack (the q and Q operators).
+            # PDF allows for graphics changes to take effect temporarily by maintaining
+            # a graphics state. This code emulates the same graphics state stack.
+            if operator == pikepdf.Operator('q'):
+                graphics_state = copy.deepcopy(graphics_state_history.peek())
+                graphics_state_history.push(graphics_state)
+            if operator == pikepdf.Operator('Q'):
+                graphics_state_history.pop()
 
-            # FIX: Keep everything else on the page intact (Text, Fonts, layout structural paths)
+            # Keep everything else on the page intact (Text, Fonts, layout structural paths)
             new_instructions.append((operands, operator))
-            possible_redaction = False
 
         modified_stream_bytes = pikepdf.unparse_content_stream(new_instructions)
         page.Contents = pikepdf.Stream(self.pdf_obj, modified_stream_bytes)

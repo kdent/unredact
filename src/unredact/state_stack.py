@@ -1,5 +1,5 @@
 from collections import deque
-from .documentstate import DocState
+from .document_state import DocState
 
 class StateStack:
     """A LIFO stack specifically for tracking DocState history."""
@@ -26,6 +26,7 @@ class StateStack:
         if not self._items:
             raise IndexError("No current state available.")
         return self._items[-1]
+
 
     def __len__(self):
         return len(self._items)
