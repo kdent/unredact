@@ -22,9 +22,9 @@ class UnredactPdf:
     def from_path(cls, file_path):
         """
         Constructor to open a PDF file from a filepath
+
+        Allow an exception to be thrown if the file is not available.
         """
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"No file found at {file_path}")
 
         # Open the file
         pdf = pikepdf.open(file_path)
