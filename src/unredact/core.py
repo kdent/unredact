@@ -1,13 +1,8 @@
-
 import copy
 import os
 import pikepdf
 from .document_state import DocState
 from .state_stack import StateStack
-
-
-# TODO:
-# - Document all the functions, etc.
 
 
 UNREDACT_HIGHLIGHT_COLOR = [0.847, 0.749, 0.847]  # Thistle color
@@ -47,7 +42,8 @@ class UnredactPdf:
 
     def __set_transparency_on_page(self, page, percentage):
         """
-        Set up page resources and dictionary value for unredacted highlighting transparency.
+        Set up page resources and dictionary value for unredacted highlighting
+        transparency.
         """
         # Ensure /Resources exists without destroying existing data
         if "/Resources" not in page:
@@ -125,20 +121,20 @@ class UnredactPdf:
         """
         Process the provided PDF page.
 
-        This function contains the primary processing loop that looks for redactions.
-        This function currently assumes that a redaction is created by drawing a 
-        PDF rectangle object. The loop processes a stream of PDF instructions 
-        looking for rectangles that might be redactions. It keeps track of various
-        graphics state changes that are used to decide if a given rectangle should
-        be treated as a redaction.
+        This function contains the primary processing loop that looks
+        for redactions. It assumes that a redaction is created by drawing a
+        PDF rectangle object. The loop processes a stream of PDF instructions
+        looking for rectangles that might be redactions. It keeps track of
+        various graphics state changes that are used to decide if a given
+        rectangle should be treated as a redaction.
 
         The function also handles highlighting previously redacted text.
         """
-        # CRITICAL: This must run so the /SemiTransparent state is registered!
+        # This must run so the /SemiTransparent state is registered!
         self.__set_transparency_on_page(page, UNREDACT_HIGHLIGHT_PERCENTAGE)
 
-        # TODO: check the page dictionary to see if there is any color information
-        # already defined.
+        # TODO: check the page dictionary to see if there is any color
+        # information already defined.
         current_state = DocState(rectangle_dimensions=[], fill_color=[0, 0, 0], color_space='rg')
         graphics_state_history = StateStack()
         graphics_state_history.push(current_state)
@@ -148,8 +144,8 @@ class UnredactPdf:
         
         for operands, operator in instructions:
     
-            # If we encounter a fill (f) operator, check to see if it's a redaction
-            # to be intercepted.
+            # If we encounter a fill (f) operator, check to see if it's a
+            # redaction to be intercepted.
             if operator == pikepdf.Operator('f'):
                 if self.__is_redaction(graphics_state_history.peek(), page):
                     # Inject transparent filling wrapped in state saves
@@ -163,22 +159,21 @@ class UnredactPdf:
                     new_instructions.append((operands, operator))
                 continue
 
-            # Here we check for any instructions that affect the graphics state
-            # which might influence a possible redaction. Most instructions will cause
-            # an update to the current_state object.
+            # Check for any instructions that affect the graphics state
+            # which might influence a possible redaction. Most instructions
+            # will cause an update to the current_state object.
             if operator == pikepdf.Operator('re'):
                 current_state = graphics_state_history.peek()
                 current_state.rectangle_dimensions = [float(x) for x in operands]
-                # Dimensions can be negative reflecting relative direction. Since
-                # we're concerned about the absolute size, we'll convert the
-                # height dimension to its absolute value
+                # Dimensions can be negative reflecting relative direction.
+                # Since we're concerned about the absolute size, we'll convert
+                # the height dimension to its absolute value
                 current_state.rectangle_dimensions[3] = abs(current_state.rectangle_dimensions[3])
  
             if operator == pikepdf.Operator('rg'):
                 current_state = graphics_state_history.peek()
                 current_state.color_space = 'rg'
                 current_state.fill_color = [float(x) for x in operands]
-                print("setting fill color to", current_state.fill_color)
             if operator == pikepdf.Operator('k'):
                 current_state = graphics_state_history.peek()
                 current_state.color_space = 'k'
@@ -209,16 +204,18 @@ class UnredactPdf:
                     current_state.set_fill_color_white()
 
 
-            # Here we check for changes to the graphics stack (the q and Q operators).
-            # PDF allows for graphics changes to take effect temporarily by maintaining
-            # a graphics state. This code emulates the same graphics state stack.
+            # Check for changes to the graphics stack (the q and Q operators).
+            # PDF allows for graphics changes to take effect temporarily by
+            # maintaining a graphics state. This code emulates the same
+            # graphics state stack to simulate the same graphics state.
             if operator == pikepdf.Operator('q'):
                 graphics_state = copy.deepcopy(graphics_state_history.peek())
                 graphics_state_history.push(graphics_state)
             if operator == pikepdf.Operator('Q'):
                 graphics_state_history.pop()
 
-            # Keep everything else on the page intact (Text, Fonts, layout structural paths)
+            # Keep everything else on the page intact (Text, Fonts,
+            # layout structural paths)
             new_instructions.append((operands, operator))
 
         modified_stream_bytes = pikepdf.unparse_content_stream(new_instructions)
