@@ -7,13 +7,8 @@ from .state_stack import StateStack
 
 
 # TODO:
-# - check for transparency in the fill color per the Claude code chat
 # - Document all the functions, etc.
 
-# Warnings:
-# - there is plenty of code that has not been exercised because I do not have sample PDF files
-#   that would trigger the code. I should find or make up PDF files for various test cases to 
-#   make sure that there are test cases to get good coverage of the code.
 
 UNREDACT_HIGHLIGHT_COLOR = [0.847, 0.749, 0.847]  # Thistle color
 UNREDACT_HIGHLIGHT_PERCENTAGE = 0.5
@@ -22,7 +17,7 @@ UNREDACT_HIGHLIGHT_PERCENTAGE = 0.5
 class UnredactPdf:
     def __init__(self, pdf_obj):
         """
-        Initialize a new object with a PDF file-like object
+        Initialize a new object with a PDF file or file-like object
         """
         self.pdf_obj = pdf_obj
         self.pages = pdf_obj.pages
@@ -51,9 +46,9 @@ class UnredactPdf:
 
 
     def __set_transparency_on_page(self, page, percentage):
-        '''
-            Set up page resources and dictionary value for unredacted highlighting transparency.
-        '''
+        """
+        Set up page resources and dictionary value for unredacted highlighting transparency.
+        """
         # Ensure /Resources exists without destroying existing data
         if "/Resources" not in page:
             page['/Resources'] = pikepdf.Dictionary()
@@ -69,8 +64,36 @@ class UnredactPdf:
             "/CA": percentage   # Stroke alpha (good practice to include both)
         })
 
+    def __is_graphics_state_transparent(self, page, gs_name):
+        """
+        Check the graphics state in the page to determine opacity setting.
+
+        In case the current graphics state is set to a transparent filling, we
+        should ignore any rectangles that are drawn with a transparent fill.
+        """
+        transparent = False
+        resources = page.get("/Resources", {})
+        ext_gstate = resources.get("/ExtGState", {})
+        if gs_name in ext_gstate:
+            gs = ext_gstate[f"/{gs_name}"]
+            if "/ca" in gs:           # lowercase = fill alpha
+                if float(gs["/ca"]) == 0.0:
+                    transparent = True
+
+        return transparent
+
 
     def __calc_max_height(self, page):
+        """
+        Determine a maximum boundary for a potential redaction.
+
+        Some rectangles are drawn for the entire page and should not be
+        assumed to be redactions. This function figures out the height 
+        of 90% of the page under the assumption that the rectangle covers
+        most or all of the page. Note that the 90% is chosen arbitrarily
+        and might need to change based on more experience with real PDF
+        files.
+        """
         page_obj = page.obj
         # Extract visible boundary of page
         box = page_obj.Cropbox if "/Cropbox" in page_obj else page_obj.MediaBox
@@ -81,10 +104,9 @@ class UnredactPdf:
 
 
     def __is_redaction(self, current_state, page):
-        '''
+        """
         Determine if the current graphics object is a redaction or not
-        '''
-        print("checking is redaction with dimensions", current_state.rectangle_dimensions)
+        """
         rect_height = current_state.rectangle_dimensions[3]
         max_height = self.__calc_max_height(page)
         if rect_height > pikepdf.Real(5) and rect_height < pikepdf.Real(max_height):
@@ -100,6 +122,18 @@ class UnredactPdf:
 
 
     def process_page(self, page):
+        """
+        Process the provided PDF page.
+
+        This function contains the primary processing loop that looks for redactions.
+        This function currently assumes that a redaction is created by drawing a 
+        PDF rectangle object. The loop processes a stream of PDF instructions 
+        looking for rectangles that might be redactions. It keeps track of various
+        graphics state changes that are used to decide if a given rectangle should
+        be treated as a redaction.
+
+        The function also handles highlighting previously redacted text.
+        """
         # CRITICAL: This must run so the /SemiTransparent state is registered!
         self.__set_transparency_on_page(page, UNREDACT_HIGHLIGHT_PERCENTAGE)
 
@@ -118,7 +152,6 @@ class UnredactPdf:
             # to be intercepted.
             if operator == pikepdf.Operator('f'):
                 if self.__is_redaction(graphics_state_history.peek(), page):
-                    print("filling ")
                     # Inject transparent filling wrapped in state saves
                     new_instructions.append(([], pikepdf.Operator('q')))
                     new_instructions.append((UNREDACT_HIGHLIGHT_COLOR, pikepdf.Operator('rg')))
@@ -127,7 +160,6 @@ class UnredactPdf:
                     new_instructions.append(([], pikepdf.Operator('f')))
                     new_instructions.append(([], pikepdf.Operator('Q')))
                 else:
-                    print("not gonna fill")
                     new_instructions.append((operands, operator))
                 continue
 
@@ -165,9 +197,17 @@ class UnredactPdf:
                 if operands == pikepdf.Name('/DeviceGray'):
                     current_state.color_space = 'g'
 
-            if operator == pikepdf.Operator('sc'):
+            if operator == pikepdf.Operator('sc') or operator == pikepdf.Operator('scn'):
                 current_state = graphics_state_history.peek()
-                current_state.fill_color = [float(x) for x in operands]
+                # scn can have a trailing Name operand (for Pattern); skip it
+                current_state.fill_color = [x for x in operands if isinstance(x, float)]
+
+            # Graphics state may set opacity in the page dictionary
+            if operator == pikepdf.Operator('gs'):
+                if self.__is_graphics_state_transparent(page, str(operands)) == 1:
+                    current_state = graphics_state_history.peek()
+                    current_state.set_fill_color_white()
+
 
             # Here we check for changes to the graphics stack (the q and Q operators).
             # PDF allows for graphics changes to take effect temporarily by maintaining
