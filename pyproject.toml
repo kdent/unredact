@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unredact"
+version = "1.0"
+description = "Library and program to remove weak redactions from PDF files"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pikepdf"
+]
+
+[project.scripts]
+unredact = "unredact.__main__:main"
+
+[tool.black]
+line-length = 80
+
+[tool.ruff]
+fix=true
+line-length = 80
+target-version = "py311"
+select = ["D"]
+
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["D104"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
