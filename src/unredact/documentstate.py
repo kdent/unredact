@@ -9,7 +9,7 @@ class DocState:
         self.fill_color = []
 
 
-    def is_white(self):
+    def is_fill_color_white(self):
         white = False
         if self.color_space == 'rg':
             if self.fill_color == [1, 1, 1]:
@@ -22,5 +22,6 @@ class DocState:
                 white = True
         else:
             raise ValueError(f"The value: {self.color_space} is not valid for the color space")
+        return white
 
 

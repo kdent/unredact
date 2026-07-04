@@ -85,7 +85,7 @@ class UnredactPdf:
             redaction = False
 
         if redaction:
-            if current_state.is_white():
+            if current_state.is_fill_color_white():
                 redaction = False
  
         return redaction
