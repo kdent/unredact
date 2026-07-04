@@ -6,6 +6,9 @@ from unredact._version import __version__
 
 def main():
 
+    #
+    # Set up command line arguments.
+    #
     parser = argparse.ArgumentParser(
         prog="unredact",
         description="Remove weak redactions from PDF files"
@@ -33,30 +36,36 @@ def main():
     # Make sure specified directory is available for writing.
     output_path = pathlib.Path(args.output_dir)
     temp_file = output_path / ".write_test"
-    if not output_path.is_dir():
-        print(f"Directory {output_path} does not exist.")
-        sys.exit(-1)
     try:
-        temp_file.write_bytes(b"")  # Try to create a file in the output directory
+        temp_file.write_bytes(b"")  # Try to create a file in the output
+                                    # directory
         temp_file.unlink()          # Clean up the test file
     except PermissionError:
-        print(f"Unable to write to {output_path}.")
+        print(f"Unable to write to {output_path}.", file=sys.stderr)
         sys.exit(-2)
 
     # Process the PDF files given on the command line.
     for pdf_file in args.pdf_files:
-        output_pdf = get_output_file(pdf_file, args.output_dir)
-        print("processing", pdf_file)
-        pdf = UnredactPdf.from_path(pdf_file)
+
+        # Open the file through the UnredactPdf library.
+        output_pdf = get_output_file_path(pdf_file, args.output_dir)
+        try:
+            pdf = UnredactPdf.from_path(pdf_file)
+            print("processing", pdf_file)
+        except Exception as error:
+            print(f"Cannot access {pdf_file}:", error, file=sys.stderr)
+            continue
+
+        # Process each page in the file.
         for page in pdf.pages:
             pdf.process_page(page)
 
-#        pdf.save('pikepdf_unredacted.pdf')
-        pdf.save(output_pdf)
+        pdf.save('pikepdf_unredacted.pdf')
+#        pdf.save(output_pdf)
         print(f"saved changes to: {output_pdf}")
 
 
-def get_output_file(input_filepath, output_dir):
+def get_output_file_path(input_filepath, output_dir):
     """Retrieve the output file name."""
     file_path = pathlib.Path(input_filepath)
     out_path = pathlib.Path(output_dir)
