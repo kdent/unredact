@@ -271,6 +271,7 @@ unredact "~/Documents/my redacted file.pdf"
 
 ## Running the tests
 
+If you make any changes to `unredact`, you should also run the regression tests.
 First install pytest (substitute the install command for your package manager 
 if not using pip):
 
