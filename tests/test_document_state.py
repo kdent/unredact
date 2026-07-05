@@ -55,13 +55,13 @@ class TestDocState(unittest.TestCase):
     # --- is_fill_color_white : Grayscale ------------------------------------
 
     def test_gray_white(self):
-        # NOTE: DocState treats gray 0 as white (absence of ink model)
+        # NOTE: DocState treats 0 as black
         s = DocState(color_space='g', fill_color=[0])
-        self.assertTrue(s.is_fill_color_white())
+        self.assertFalse(s.is_fill_color_white())
 
     def test_gray_black_not_white(self):
         s = DocState(color_space='g', fill_color=[1])
-        self.assertFalse(s.is_fill_color_white())
+        self.assertTrue(s.is_fill_color_white())
 
     # --- is_fill_color_white : invalid color space --------------------------
 
