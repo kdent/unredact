@@ -1,4 +1,5 @@
 import copy
+import decimal
 import io
 from typing import Self
 
@@ -104,7 +105,7 @@ class UnredactPdf:
         # lower_left_x, lower_left_y, upper_right_x, upper_right_y]
 
         # Calculate within 10% of the page bounding box
-        return height_pts * 0.90
+        return height_pts * decimal.Decimal(0.90)
 
     def __is_redaction(
         self, current_state: DocState, page: pikepdf.Page
@@ -157,7 +158,7 @@ class UnredactPdf:
         for operands, operator in instructions:
             # If we encounter a fill (f) operator, check to see if it's a
             # redaction to be intercepted.
-            if operator == pikepdf.Operator("f"):
+            if operator == pikepdf.Operator("f") or operator == pikepdf.Operator("f*"):
                 if self.__is_redaction(graphics_state_history.peek(), page):
                     # Inject transparent filling wrapped in state saves
                     new_instructions.append(([], pikepdf.Operator("q")))
