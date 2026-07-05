@@ -205,13 +205,14 @@ class UnredactPdf:
                 current_state.color_space = "g"
                 current_state.fill_color = [float(x) for x in operands]
 
+            first_operand = operands[0] if len(operands) > 0 else None
             if operator == pikepdf.Operator("cs"):
                 current_state = graphics_state_history.peek()
-                if operands == pikepdf.Name("/DeviceRGB"):
+                if first_operand == pikepdf.Name("/DeviceRGB"):
                     current_state.color_space = "rg"
-                if operands == pikepdf.Name("/DeviceCMYK"):
+                if first_operand == pikepdf.Name("/DeviceCMYK"):
                     current_state.color_space = "k"
-                if operands == pikepdf.Name("/DeviceGray"):
+                if first_operand == pikepdf.Name("/DeviceGray"):
                     current_state.color_space = "g"
 
             if operator == pikepdf.Operator(
