@@ -1,8 +1,19 @@
-# Here is some general information on Makefile's so that you can grow this out:
-# https://www.gnu.org/software/make/manual/html_node/Introduction.html
+.PHONY: check format fix
 
-.PHONY: lint
-lint:
-	black ./unredact ./*.py
-	isort ./unredact ./*.py
-	ruff ./unredact ./*.py
+# Lints the code using Ruff (returns non-zero if errors are found)
+check:
+	ruff check src/unredact
+
+# Formats the code and verifies formatting
+format:
+	ruff format src/unredact --check
+
+# Automatically fixes fixable errors (e.g., removing unused imports)
+fix:
+	ruff check --fix src/unredact
+	ruff format src/unredact
+
+test:
+	python -m pytest tests/test_state_stack.py -v
+	python -m pytest tests/test_document_state.py -v
+	python -m pytest tests/test_core.py -v

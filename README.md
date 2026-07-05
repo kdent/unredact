@@ -1,81 +1,294 @@
-# unredact.py
+# unredact
 
-This repo contains a script to remove weak redactions from PDF files. Note that
-this script will not uncover anything more than can be revealed by copying and
-pasting redacted content. However, it operates directly on the original
-redacted PDF file and produces an unredacted version maintaining as much of the
-original formatting as possible in a new unredacted PDF.
+A tool to remove weak redactions from PDF files. When a PDF is poorly redacted
+by drawing a black rectangle over text (rather than permanently removing the
+underlying content), `unredact` detects those rectangles and removes them
+revealing the text underneath. By default, `unredact` also highlights the
+text that has been revealed to indicate the text that had been previously
+redacted.
+
+There are many programs that can detect and extract text that has been redacted
+in this way. `unredact` has the added feature of revealing text within the 
+PDF file itself. In other words, after running `unredact`, you will have a
+nearly identical PDF file, but with the redacted text highlighted instead of 
+blacked out.
+
+---
 
 ## Requirements
-- Python 🐍 version >= v`3.8`
 
-## Running unredact
-To install the needed packages for this application, run the command below:
-```shell
-$ pip install -e .
+- **Python 3.10 or higher** — check by running `python --version` in your 
+  terminal.
+- **pikepdf** — the only external dependency
+
+---
+
+## Getting the source code
+
+**Option A — Git:**
+
+You can check out the code directly from GitHub:
+
+```bash
+git clone https://github.com/your-username/unredact.git
+cd unredact
 ```
 
-Usage:
-```shell
-$ python ./unredact.py <redacted-pdf-file-path>
+**Option B — ZIP download:**
+
+On the GitHub page, click the green **Code** button, then **Download ZIP**.
+Unzip the file noting the path to the resulting folder.
+
+---
+
+## Installing dependencies
+
+`unredact` has one external dependency:
+[pikepdf](https://pikepdf.readthedocs.io/). You can install it using your
+favorite Python package manager.
+
+### pip (standard)
+
+If you're not sure which package manager to use, pip is the most
+straightforward option. It's included with Python 3.10+. On a command line,
+change your current working directory to where the `unredact` code is located.
+Then type:
+
+```bash
+pip install -e .
 ```
 
-Executing the script will produce a new PDF file named the same as the original
-document but with '-unredacted' appended to the end of the name.
+The `-e` flag installs in "editable" mode, so if you update `unredact`, changes
+to the source code will take effect immediately without reinstalling.
 
-## What is redaction?
-Redaction is a form of censoring sensitive content from documents. It's
-generally used in legal or government contexts where most or some of a document
-can be released to the public or other parties but some of the information is
-excluded from the release.
+### Poetry
 
-You'll recognize redactions as the thick black boxes that cover lines
-of text. Originally redactions were actually done with a thick black marker
-overwriting the text on paper. With digital documents, redactions are generally
-handled by special software that can black out the excluded information in a
-similar fashion. When done properly, redactions cannot be reversed. But in some
-circumstances redacted text can be revealed by simply copying the covered text,
-including the text that is blacked out and pasting it into another document.
+```bash
+poetry install
+```
 
-These poorly done or [weak](https://www.cjr.org/local_news/redaction-sun-sentinel.php) redactions are [more
-common](https://www.americanbar.org/groups/judicial/publications/judges_journal/2019/spring/embarrassing-redaction-failures/)
-than you might think and have been the source of valuable information for 
-investigative journalists, for example. Freedom of Information requests seeking
-documents from government agencies often result in documents with some of the 
-content redacted.
+Poetry will read `pyproject.toml` and install `pikepdf` automatically.
 
-## About `unredact.py`
-The script depends on the `pdfminer.six`, `reportlab` and `PIL` modules. So
-those must be installed before running it. Some older but still helpful 
-documentation for pdfminer is available [here](https://buildmedia.readthedocs.org/media/pdf/pdfminer-docs/latest/pdfminer-docs.pdf).
+### uv
 
-The script is in a very early stage. While it has been run over many PDF files,
-caution, it has had limited testing on weakly redacted documents. If you
-have examples of redacted documents, I would be very happy to try the program
-on them, so please let me know.
+```bash
+uv sync
+```
 
-Also be aware of the following issues:
+### Conda / Anaconda
 
-* The code is not fully commented and documented.
-* There are many aspects of PDF that are not handled, e.g. slanted text or
-other special layout features. Also, there are many PDF elements that
-are not yet handled.
-* Font handling needs improvement. Currently, there is font mapping at the
-beginning of the script. This solution is not scalable, and I believe the
-document's fonts are embedded within the PDF, so there should be a way to 
-get them out.
-* Some images that have a white background in the original PDF end up with a
-black background in the unredacted version. Apparently PDF doesn't have
-transparency in images, so that's accomplished by a second image that creates
-the background. The code should figure out and fix the transparency when it
-exists.
-* Some unredacted files are much bigger than the original file.
+`pikepdf` is available on the `conda-forge` channel rather than the default 
+Conda channel. Install it with:
 
+```bash
+conda install -c conda-forge pikepdf
+```
 
-## Dev commands
-`make lint`: Runs `black`, `ruff`, and `isort` over the code files.
+Then install `unredact` itself:
 
-## Related Projects
-* [X-Ray Bad Redaction Detector](https://free.law/projects/x-ray), from the
-Free Law Project, detects bounding boxes and underlying text for bad
-redactions.
+```bash
+pip install -e .
+```
+
+---
+
+## Usage
+
+Once installed, run `unredact` from a terminal. You can specify one or more
+PDF files to be processed. To process a single file, simply type:
+
+```bash
+unredact input.pdf
+```
+
+which will produce an unredacted PDF file called `input-unredacted.pdf` in the 
+current directory.
+
+The general syntax is
+
+```bash
+unredact [-h] [-v] [-o OUTPUT_DIR] pdf_file [pdf_file ...]
+```
+
+You can specify one or more files to be processed and optionally an output 
+directory where the unredacted files should be written. Unredacted file
+names will have the form '*originl-file-name*-unredacted.pdf'. An example
+with multiple files written to a given output directory:
+
+```bash
+unredact -o unredacted_pdf_files input1.pdf input2.pdf input3.pdf
+```
+
+After running this example, you will have the three files 
+`input1-unredacted.pdf`, `input2-unredacted.pdf`, and `input3-unredacted.pdf`
+in the `unredacted_pdf_files/` directory.
+
+---
+
+## How it works
+
+`unredact` reads each page of the PDF and inspects the drawing instructions.
+When it finds a rectangle that looks like a redaction, it replaces the solid
+rectangle with a transparent highlight so the underlying content shows through.
+All other content like text, images, fonts, layout, is left unchanged.
+
+> **Important:** this tool only works on PDFs where the original text is still 
+present in the file and has simply been covered up. If a PDF was redacted by 
+scanning a printed copy, or by permanently deleting the content, `unredact` 
+cannot recover that information.
+
+---
+
+## Using unredact as a library
+
+`unredact` can be imported and used directly in your own Python code, which is 
+useful if you want to integrate redaction removal into a larger workflow---for 
+example, processing uploaded files, a pipeline, or an in-memory source rather 
+than the command line.
+
+### Installation
+
+Add `unredact` as a dependency in your project the same way you would any 
+other package. If your project uses pip:
+
+```bash
+pip install git+https://github.com/your-username/unredact.git
+```
+
+Or add it to your `pyproject.toml` dependencies:
+
+```toml
+dependencies = [
+    "unredact @ git+https://github.com/your-username/unredact.git"
+]
+```
+
+### Basic usage
+
+The main class is `UnredactPdf`. The typical pattern is to open a PDF, call 
+`process_page()` on each page, then save the result:
+
+```python
+from unredact.core import UnredactPdf
+
+# Open from a file path
+doc = UnredactPdf.from_path("redacted.pdf")
+
+# Process every page
+for page in doc.pages:
+    doc.process_page(page)
+
+# Save to a file path
+doc.save("unredacted.pdf")
+```
+
+### Working with file-like objects
+
+If you're working with PDFs in memory, for example, from a web framework or a 
+pipeline that hands you a stream, you can open a pikepdf object directly and 
+save to a `BytesIO` buffer rather than a file on disk:
+
+```python
+import io
+import pikepdf
+from unredact.core import UnredactPdf
+
+# Open from a file-like object (e.g. a BytesIO buffer or an uploaded file)
+pdf_bytes = io.BytesIO(uploaded_file_content)
+pdf_obj = pikepdf.open(pdf_bytes)
+doc = UnredactPdf(pdf_obj)
+
+for page in doc.pages:
+    doc.process_page(page)
+
+# Save to a buffer instead of a file
+output_buffer = io.BytesIO()
+doc.save(output_buffer)
+output_buffer.seek(0)
+# output_buffer.read() now contains the processed PDF bytes
+```
+
+### Processing a subset of pages
+
+If you want to process specific pages rather than the whole document, 
+iterate over the pages you need. Pages are zero-indexed:
+
+```python
+doc = UnredactPdf.from_path("redacted.pdf")
+
+# Process only the first three pages
+for page in doc.pages[:3]:
+    doc.process_page(page)
+
+doc.save("partially_unredacted.pdf")
+```
+
+### API reference
+
+#### `UnredactPdf(pdf_obj)`
+
+Constructor. Accepts an open `pikepdf.Pdf` object directly. Use this when you 
+already have a pikepdf object, or are working with in-memory PDF data.
+
+#### `UnredactPdf.from_path(file_path)`
+
+Class method. Opens a PDF from a file path and returns an `UnredactPdf` 
+instance. Raises `FileNotFoundError` if the path does not exist.
+
+#### `doc.process_page(page)`
+
+Processes a single page in place, replacing any detected redaction rectangles 
+with semi-transparent highlights. The page object is modified directly with no 
+return value.
+
+#### `doc.save(target)`
+
+Saves the processed PDF. `target` can be either a file path string or any 
+writable file-like object (such as `io.BytesIO`).
+
+#### `doc.pages`
+
+A reference to the underlying `pikepdf` page list. Supports indexing and 
+slicing, so you can iterate over all pages or a subset.
+
+---
+
+## Troubleshooting
+
+**The output PDF looks the same as the input** \
+The redactions in your file may not be simple filled rectangles. They may be 
+true redactions where the content has been permanently removed. `unredact` can 
+only recover content that is still present in the file.
+
+**A `FileNotFoundError` or similar error appears when running the command** \
+Double-check the path to your input file. If the path contains spaces, wrap it 
+in quotes:
+
+```bash
+unredact "~/Documents/my redacted file.pdf" 
+```
+
+---
+
+## Running the tests
+
+If you make any changes to `unredact`, you should also run the regression tests.
+First install pytest (substitute the install command for your package manager 
+if not using pip):
+
+```bash
+pip install pytest
+```
+
+Then run:
+
+```bash
+python -m pytest tests/ -v
+```
+
+---
+
+## License
+
+`unredact` is open source software released under the MIT License. See the 
+`LICENSE` file for details.
