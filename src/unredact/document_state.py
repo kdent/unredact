@@ -42,7 +42,7 @@ class DocState:
             if self.fill_color == [1, 1, 1]:
                 white = True
         # CMYK is the opposite--absence of ink is white
-        elif (self.color_space == "k"):
+        elif self.color_space == "k":
             if self.fill_color == [0, 0, 0, 0]:
                 white = True
         # With grayscale 0.0 is black and 1.0 is white
@@ -73,8 +73,8 @@ class DocState:
             )
 
     def __str__(self) -> str:
-       return (
-        f"Rectangle Dimensions: {self.rectangle_dimensions}\n"
-        f"Color Space: {self.color_space}\n"
-        f"Fill Color: {self.fill_color}"
-       )
+        return (
+            f"Rectangle Dimensions: {self.rectangle_dimensions}\n"
+            f"Color Space: {self.color_space}\n"
+            f"Fill Color: {self.fill_color}"
+        )

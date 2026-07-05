@@ -158,7 +158,9 @@ class UnredactPdf:
         for operands, operator in instructions:
             # If we encounter a fill (f) operator, check to see if it's a
             # redaction to be intercepted.
-            if operator == pikepdf.Operator("f") or operator == pikepdf.Operator("f*"):
+            if operator == pikepdf.Operator(
+                "f"
+            ) or operator == pikepdf.Operator("f*"):
                 if self.__is_redaction(graphics_state_history.peek(), page):
                     # Inject transparent filling wrapped in state saves
                     new_instructions.append(([], pikepdf.Operator("q")))
