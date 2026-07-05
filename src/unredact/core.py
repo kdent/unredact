@@ -1,4 +1,6 @@
 import copy
+import io
+from typing import Self
 
 import pikepdf
 
@@ -10,7 +12,7 @@ UNREDACT_HIGHLIGHT_PERCENTAGE = 0.5
 
 
 class UnredactPdf:
-    def __init__(self, pdf_obj):
+    def __init__(self, pdf_obj: pikepdf) -> None:
         """
         Initialize a new object with a PDF file or file-like object
         """
@@ -18,7 +20,7 @@ class UnredactPdf:
         self.pages = pdf_obj.pages
 
     @classmethod
-    def from_path(cls, file_path):
+    def from_path(cls: Self, file_path: str) -> Self:
         """
         Constructor to open a PDF file from a filepath
 
@@ -29,7 +31,7 @@ class UnredactPdf:
         pdf = pikepdf.open(file_path)
         return cls(pdf)
 
-    def save(self, target):
+    def save(self, target: str | io.BytesIO) -> None:
         """
         Save the unredacted file content.
 
@@ -37,7 +39,9 @@ class UnredactPdf:
         """
         self.pdf_obj.save(target)
 
-    def __set_transparency_on_page(self, page, percentage):
+    def __set_transparency_on_page(
+        self, page: pikepdf.Page, percentage: float
+    ) -> None:
         """
         Set up page resources and dictionary value for unredacted highlighting
         transparency.
@@ -57,12 +61,14 @@ class UnredactPdf:
                     "/Type": pikepdf.Name("/ExtGState"),
                     "/ca": percentage,  # Fill alpha (transparency)
                     "/CA": percentage,  # Stroke alpha
-                                        # (good practice to include both)
+                    # (good practice to include both)
                 }
             )
         )
 
-    def __is_graphics_state_transparent(self, page, gs_name):
+    def __is_graphics_state_transparent(
+        self, page: pikepdf.Page, gs_name: str
+    ) -> bool:
         """
         Check the graphics state in the page to determine the opacity setting.
 
@@ -80,7 +86,7 @@ class UnredactPdf:
 
         return transparent
 
-    def __calc_max_height(self, page):
+    def __calc_max_height(self, page: pikepdf.Page) -> float:
         """
         Determine a maximum boundary for a potential redaction.
 
@@ -94,15 +100,15 @@ class UnredactPdf:
         page_obj = page.obj
         # Extract visible boundary of page
         box = page_obj.Cropbox if "/Cropbox" in page_obj else page_obj.MediaBox
-        height_pts = (
-            box[3] - box[1]
-        )  # Bounding boxes are formatted as:
-           # lower_left_x, lower_left_y, upper_right_x, upper_right_y]
+        height_pts = box[3] - box[1]  # Bounding boxes are formatted as:
+        # lower_left_x, lower_left_y, upper_right_x, upper_right_y]
 
         # Calculate within 10% of the page bounding box
         return height_pts * 0.90
 
-    def __is_redaction(self, current_state, page):
+    def __is_redaction(
+        self, current_state: DocState, page: pikepdf.Page
+    ) -> bool:
         """
         Determine if the current graphics object is a redaction or not
         """
@@ -121,7 +127,7 @@ class UnredactPdf:
 
         return redaction
 
-    def process_page(self, page):
+    def process_page(self, page: pikepdf.Page) -> None:
         """
         Process the provided PDF page.
 

@@ -7,7 +7,7 @@ from unredact.core import UnredactPdf
 VERSION = "1.0"
 
 
-def main():
+def main() -> None:
 
     #
     # Set up command line arguments.
@@ -69,7 +69,7 @@ def main():
         print(f"saved changes to: {output_pdf}")
 
 
-def get_output_file_path(input_filepath, output_dir):
+def get_output_file_path(input_filepath: str, output_dir: str) -> pathlib.Path:
     """Retrieve the output file name."""
     file_path = pathlib.Path(input_filepath)
     out_path = pathlib.Path(output_dir)

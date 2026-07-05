@@ -7,10 +7,10 @@ class DocState:
 
     def __init__(
         self,
-        rectangle_dimensions=None,
-        color_space="rg",
-        fill_color=None,
-    ):
+        rectangle_dimensions: list = None,
+        color_space: str = "rg",
+        fill_color: list = None,
+    ) -> None:
         """
         Initialize a DocState object which tracks rectangle dimensions,
         fill color, and the current color space.
@@ -18,7 +18,7 @@ class DocState:
         if rectangle_dimensions:
             self.rectangle_dimensions = rectangle_dimensions
         else:
-            self.rectangle=[0, 0, 0, 0]
+            self.rectangle_dimensions = [0, 0, 0, 0]
         # The color space should be equal to "k" for CMYK, "rg" for RGB,
         # or "g" for greyscale
         self.color_space = color_space
@@ -29,7 +29,7 @@ class DocState:
         else:
             self.fill_color = [0, 0, 0]
 
-    def is_fill_color_white(self):
+    def is_fill_color_white(self) -> bool:
         """
         Check if the current fill color is white.
 
@@ -52,11 +52,11 @@ class DocState:
         else:
             raise ValueError(
                 f"The value: {self.color_space} is not valid for the "
-                 "color space"
+                "color space"
             )
         return white
 
-    def set_fill_color_white(self):
+    def set_fill_color_white(self) -> None:
         """
         Set the current state to be 0 sized rectangle with white fill color.
         """
@@ -69,5 +69,5 @@ class DocState:
         else:
             raise ValueError(
                 f"The value: {self.color_space} is not a valid for the "
-                 "color space"
+                "color space"
             )

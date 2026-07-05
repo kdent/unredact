@@ -34,6 +34,7 @@ select = [
     "ARG",  # flake8-unused-arguments
     "PTH",  # flake8-use-pathlib
     "T20",  # flake8-print
+    "ANN",  # flake8-annotations
 ]
 
 [tool.ruff.lint.per-file-ignores]
