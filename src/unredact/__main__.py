@@ -64,8 +64,7 @@ def main() -> None:
         for page in pdf.pages:
             pdf.process_page(page)
 
-        pdf.save("pikepdf_unredacted.pdf")
-        #        pdf.save(output_pdf)
+        pdf.save(output_pdf)
         print(f"saved changes to: {output_pdf}")
 
 
