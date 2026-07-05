@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.10' # Enforces minimum Python 3.10 requirement
 
@@ -26,7 +26,7 @@ jobs:
         sudo apt-get install -y libqpdf-dev qpdf
 
     - name: Cache Pip Packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -53,7 +53,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.10'
 
@@ -63,7 +63,7 @@ jobs:
         sudo apt-get install -y libqpdf-dev qpdf
 
     - name: Cache Pip Packages
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
