@@ -1,11 +1,11 @@
 # unredact
 
 A tool to remove weak redactions from PDF files. When a PDF is poorly redacted
-by drawing a (normally black) rectangle over text (rather than permanently
-removing the underlying content), `unredact` detects those rectangles and
-removes them revealing the text underneath. By default, `unredact` also
-highlights the text that has been revealed to indicate the text that had
-been previously redacted.
+by drawing a black rectangle over text (rather than permanently removing the
+underlying content), `unredact` detects those rectangles and removes them
+revealing the text underneath. By default, `unredact` also highlights the
+text that has been revealed to indicate the text that had been previously
+redacted.
 
 There are many programs that can detect and extract text that has been redacted
 in this way. `unredact` has the added feature of revealing text within the 
@@ -49,7 +49,7 @@ favorite Python package manager.
 
 ### pip (standard)
 
-If you're not sure which package manager to use, this is the most
+If you're not sure which package manager to use, pip is the most
 straightforward option. It's included with Python 3.10+. On a command line,
 change your current working directory to where the `unredact` code is located.
 Then type:
@@ -111,14 +111,15 @@ unredact [-h] [-v] [-o OUTPUT_DIR] pdf_file [pdf_file ...]
 ```
 
 You can specify one or more files to be processed and optionally an output 
-directory where the unredacted files should be written. An example with
-multiple files written to an output directory:
+directory where the unredacted files should be written. Unredacted file
+names will have the form '*originl-file-name*-unredacted.pdf'. An example
+with multiple files written to a given output directory:
 
 ```bash
-unredact  -o unredacted_pdf_files input1.pdf input2.pdf input3.pdf
+unredact -o unredacted_pdf_files input1.pdf input2.pdf input3.pdf
 ```
 
-After running this example you should see the three files 
+After running this example, you will have the three files 
 `input1-unredacted.pdf`, `input2-unredacted.pdf`, and `input3-unredacted.pdf`
 in the `unredacted_pdf_files/` directory.
 
@@ -129,7 +130,7 @@ in the `unredacted_pdf_files/` directory.
 `unredact` reads each page of the PDF and inspects the drawing instructions.
 When it finds a rectangle that looks like a redaction, it replaces the solid
 rectangle with a transparent highlight so the underlying content shows through.
-All other content — text, images, fonts, layout — is left completely unchanged.
+All other content like text, images, fonts, layout, is left unchanged.
 
 > **Important:** this tool only works on PDFs where the original text is still 
 present in the file and has simply been covered up. If a PDF was redacted by 
@@ -165,7 +166,7 @@ dependencies = [
 ### Basic usage
 
 The main class is `UnredactPdf`. The typical pattern is to open a PDF, call 
-`process_page` on each page, then save the result:
+`process_page()` on each page, then save the result:
 
 ```python
 from unredact.core import UnredactPdf
@@ -183,8 +184,8 @@ doc.save("unredacted.pdf")
 
 ### Working with file-like objects
 
-If you're working with PDFs in memory — for example, from a web framework or a 
-pipeline that hands you a stream — you can open a pikepdf object directly and 
+If you're working with PDFs in memory, for example, from a web framework or a 
+pipeline that hands you a stream, you can open a pikepdf object directly and 
 save to a `BytesIO` buffer rather than a file on disk:
 
 ```python
@@ -209,7 +210,7 @@ output_buffer.seek(0)
 
 ### Processing a subset of pages
 
-If you only want to process specific pages rather than the whole document, 
+If you want to process specific pages rather than the whole document, 
 iterate over the pages you need. Pages are zero-indexed:
 
 ```python
@@ -254,12 +255,12 @@ slicing, so you can iterate over all pages or a subset.
 
 ## Troubleshooting
 
-**The output PDF looks the same as the input**
+**The output PDF looks the same as the input** \
 The redactions in your file may not be simple filled rectangles. They may be 
 true redactions where the content has been permanently removed. `unredact` can 
 only recover content that is still present in the file.
 
-**A `FileNotFoundError` or similar appears when running the command**
+**A `FileNotFoundError` or similar error appears when running the command** \
 Double-check the path to your input file. If the path contains spaces, wrap it 
 in quotes:
 

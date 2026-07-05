@@ -1,12 +1,16 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "unredact"
-dynamic = ["version"]
+version = "1.0"
 description = "Program and library to remove weak redactions from PDF files"
 readme = "README.md"
+license = { text = "MIT" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
 requires-python = ">=3.10"
 dependencies = [
     "pikepdf"
@@ -15,20 +19,29 @@ dependencies = [
 [project.scripts]
 unredact = "unredact.__main__:main"
 
-[tool.setuptools_scm]
-version_file = "src/unredact/_version.py"
-
-[tool.black]
-line-length = 80
-
 [tool.ruff]
-fix=true
+#fix=true
 line-length = 80
-target-version = "py311"
-select = ["D"]
+target-version = "py310"
 
-[tool.ruff.extend-per-file-ignores]
-"__init__.py" = ["D104"]
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # Pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade (rewrites old code to modern Python 3.10 syntax)
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "T20",  # flake8-print
+]
 
-[tool.ruff.pydocstyle]
-convention = "numpy"
+[tool.ruff.lint.per-file-ignores]
+# Tailored rules for your CLI entrypoint
+"**/__main__.py" = [
+    "T201",    # Allow print() statements for standard terminal output
+    "D100",    # Module docstrings are not required for __main__.py
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

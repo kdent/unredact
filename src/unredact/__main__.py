@@ -1,8 +1,11 @@
 import argparse
 import pathlib
 import sys
+
 from unredact.core import UnredactPdf
-from unredact._version import __version__
+
+VERSION = "1.0"
+
 
 def main():
 
@@ -10,26 +13,28 @@ def main():
     # Set up command line arguments.
     #
     parser = argparse.ArgumentParser(
-        prog="unredact",
-        description="Remove weak redactions from PDF files"
+        prog="unredact", description="Remove weak redactions from PDF files"
     )
     parser.add_argument(
-        "-v", "--version",
+        "-v",
+        "--version",
         action="version",
-        version=f"%(prog)s {__version__}",
-        help="show the program version and exit"
+        version=f"%(prog)s {VERSION}",
+        help="show the program version and exit",
     )
     parser.add_argument(
-        "-o", "--output_dir",
+        "-o",
+        "--output_dir",
         type=str,
         default=".",
         required=False,
-        help="specify an output directory where unredacted PDF files will be written"
+        help=(
+            "specify an output directory where unredacted"
+            "PDF files will be written"
+        ),
     )
     parser.add_argument(
-        "pdf_files",
-        nargs="+",
-        help="list of PDF files to process"
+        "pdf_files", nargs="+", help="list of PDF files to process"
     )
     args = parser.parse_args()
 
@@ -38,15 +43,14 @@ def main():
     temp_file = output_path / ".write_test"
     try:
         temp_file.write_bytes(b"")  # Try to create a file in the output
-                                    # directory
-        temp_file.unlink()          # Clean up the test file
+        # directory
+        temp_file.unlink()  # Clean up the test file
     except PermissionError:
         print(f"Unable to write to {output_path}.", file=sys.stderr)
         sys.exit(-2)
 
     # Process the PDF files given on the command line.
     for pdf_file in args.pdf_files:
-
         # Open the file through the UnredactPdf library.
         output_pdf = get_output_file_path(pdf_file, args.output_dir)
         try:
@@ -60,8 +64,8 @@ def main():
         for page in pdf.pages:
             pdf.process_page(page)
 
-        pdf.save('pikepdf_unredacted.pdf')
-#        pdf.save(output_pdf)
+        pdf.save("pikepdf_unredacted.pdf")
+        #        pdf.save(output_pdf)
         print(f"saved changes to: {output_pdf}")
 
 
