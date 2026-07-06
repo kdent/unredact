@@ -17,7 +17,7 @@ blacked out.
 
 ## Requirements
 
-- **Python 3.10 or higher** — check by running `python --version` in your 
+- **Python 3.11 or higher** — check by running `python --version` in your 
   terminal.
 - **pikepdf** — the only external dependency
 
