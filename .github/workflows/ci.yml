@@ -36,7 +36,7 @@ jobs:
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -e .
 
     - name: Run Code Checks
       run: make check
@@ -71,7 +71,7 @@ jobs:
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -e .
 
     - name: Run Tests
       run: make test
