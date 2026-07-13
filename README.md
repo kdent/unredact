@@ -25,8 +25,6 @@ blacked out.
 
 ## Getting the source code
 
-**Option A — Git:**
-
 You can check out the code directly from GitHub:
 
 ```bash
@@ -34,10 +32,10 @@ git clone https://github.com/your-username/unredact.git
 cd unredact
 ```
 
-**Option B — ZIP download:**
-
-On the GitHub page, click the green **Code** button, then **Download ZIP**.
-Unzip the file noting the path to the resulting folder.
+Or if you prefer not to clone the repository, on the GitHub page, click the
+green **Code** button, then **Download ZIP**.  Unzip the file noting the path
+so that you can unzip the file if your operating system doesn't do it
+automatically.
 
 ---
 
@@ -47,7 +45,7 @@ Unzip the file noting the path to the resulting folder.
 [pikepdf](https://pikepdf.readthedocs.io/). You can install it using your
 favorite Python package manager.
 
-### pip (standard)
+### pip
 
 If you're not sure which package manager to use, pip is the most
 straightforward option. It's included with Python 3.10+. On a command line,
@@ -267,6 +265,28 @@ in quotes:
 ```bash
 unredact "~/Documents/my redacted file.pdf" 
 ```
+
+---
+
+## Generating Documentation
+
+If you would like to generate the API documentation, you must install `pdoc3`.
+Once installed, simply type:
+
+```bash
+make docs
+```
+
+which will execute
+
+```bash
+pdoc --html --output-dir docs --force unredact
+```
+
+which will  create the API documentation in the `docs\unredact` subdirectory.
+The documentation is created by extracting docstring comments from each function
+in the source code. To modify the documentation, edit the comments and
+rerun `pdoc`.
 
 ---
 
