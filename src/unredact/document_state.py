@@ -10,6 +10,7 @@ class DocState:
         rectangle_dimensions: list = None,
         color_space: str = "rg",
         fill_color: list = None,
+        fill_transparent: bool = False,
     ) -> None:
         """
         Initialize a DocState object which tracks rectangle dimensions,
@@ -28,6 +29,7 @@ class DocState:
             self.fill_color = fill_color
         else:
             self.fill_color = [0, 0, 0]
+        self.fill_transparent = fill_transparent
 
     def is_fill_color_white(self) -> bool:
         """
@@ -65,7 +67,7 @@ class DocState:
         elif self.color_space == "k":
             self.fill_color = [0, 0, 0, 0]
         elif self.color_space == "g":
-            self.fill_color = [0]
+            self.fill_color = [1]
         else:
             raise ValueError(
                 f"The value: {self.color_space} is not a valid for the "

@@ -79,8 +79,10 @@ class UnredactPdf:
         transparent = False
         resources = page.get("/Resources", {})
         ext_gstate = resources.get("/ExtGState", {})
+        if not gs_name.startswith("/"):
+            gs_name = f"/{gs_name}"
         if gs_name in ext_gstate:
-            gs = ext_gstate[f"/{gs_name}"]
+            gs = ext_gstate[gs_name]
             if "/ca" in gs:  # lowercase = fill alpha
                 if float(gs["/ca"]) == 0.0:
                     transparent = True
@@ -100,7 +102,7 @@ class UnredactPdf:
         """
         page_obj = page.obj
         # Extract visible boundary of page
-        box = page_obj.Cropbox if "/Cropbox" in page_obj else page_obj.MediaBox
+        box = page_obj.CropBox if "/CropBox" in page_obj else page_obj.MediaBox
         height_pts = box[3] - box[1]  # Bounding boxes are formatted as:
         # lower_left_x, lower_left_y, upper_right_x, upper_right_y]
 
@@ -123,7 +125,10 @@ class UnredactPdf:
             redaction = False
 
         if redaction:
-            if current_state.is_fill_color_white():
+            if (
+                current_state.fill_transparent
+                or current_state.is_fill_color_white()
+            ):
                 redaction = False
 
         return redaction
@@ -174,7 +179,7 @@ class UnredactPdf:
                             pikepdf.Operator("gs"),
                         )
                     )
-                    new_instructions.append(([], pikepdf.Operator("f")))
+                    new_instructions.append(([], operator))
                     new_instructions.append(([], pikepdf.Operator("Q")))
                 else:
                     new_instructions.append((operands, operator))
@@ -223,18 +228,28 @@ class UnredactPdf:
             ) or operator == pikepdf.Operator("scn"):
                 current_state = graphics_state_history.peek()
                 # scn can have a trailing Name operand (for Pattern); skip it
-                current_state.fill_color = [
-                    x for x in operands if isinstance(x, float)
-                ]
+                fill_color = []
+                for operand in operands:
+                    try:
+                        fill_color.append(float(operand))
+                    except (TypeError, ValueError):
+                        # Pattern names are allowed as the final operand of
+                        # scn and do not form part of the color components.
+                        continue
+                current_state.fill_color = fill_color
 
             # Graphics state may set opacity in the page dictionary
             if operator == pikepdf.Operator("gs"):
                 if (
-                    self.__is_graphics_state_transparent(page, str(operands))
-                    == 1
+                    self.__is_graphics_state_transparent(
+                        page, str(first_operand)
+                    )
                 ):
                     current_state = graphics_state_history.peek()
-                    current_state.set_fill_color_white()
+                    current_state.fill_transparent = True
+                else:
+                    current_state = graphics_state_history.peek()
+                    current_state.fill_transparent = False
 
             # Check for changes to the graphics stack (the q and Q operators).
             # PDF allows for graphics changes to take effect temporarily by

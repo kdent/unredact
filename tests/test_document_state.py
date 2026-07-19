@@ -15,6 +15,7 @@ class TestDocState(unittest.TestCase):
         self.assertEqual(s.rectangle_dimensions, [0, 0, 0, 0])
         self.assertEqual(s.color_space, 'rg')
         self.assertEqual(s.fill_color, [0, 0, 0])
+        self.assertFalse(s.fill_transparent)
 
     def test_custom_construction(self):
         s = DocState(rectangle_dimensions=[1, 2, 3, 4], color_space='k',
@@ -63,11 +64,14 @@ class TestDocState(unittest.TestCase):
         s = DocState(color_space='g', fill_color=[1])
         self.assertTrue(s.is_fill_color_white())
 
+    def test_set_gray_fill_color_white(self):
+        s = DocState(color_space='g', fill_color=[0])
+        s.set_fill_color_white()
+        self.assertTrue(s.is_fill_color_white())
+
     # --- is_fill_color_white : invalid color space --------------------------
 
     def test_invalid_color_space_raises(self):
         s = DocState(color_space='xyz', fill_color=[0])
         with self.assertRaises(ValueError):
             s.is_fill_color_white()
-
-

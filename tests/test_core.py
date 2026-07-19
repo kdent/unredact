@@ -156,16 +156,22 @@ class TestUnredactPdf(unittest.TestCase):
                                # needed beyond no crash
 
     def test_max_height_uses_crop_box_when_present(self):
-        """When CropBox is present it should be used instead of MediaBox."""
-        # CropBox height = 500, MediaBox height = 792; max_height should
-        # be 500 * 0.9
+        """When present, CropBox bounds redaction height detection."""
+        stream = _encode_ops(
+            ([0, 0, 0], "rg"),
+            ([0, 0, 612, 600], "re"),
+            ([], "f"),
+        )
+        # 600pt is below 90% of the MediaBox, but above 90% of the CropBox.
         pdf, page = _make_page(
             media_box=[0, 0, 612, 792],
             crop_box=[0, 0, 612, 500],
-            content_stream=b"",
+            content_stream=stream,
         )
         u = UnredactPdf(pdf)
-        u.process_page(page)   # exercises the CropBox branch
+        u.process_page(page)
+        ops = [str(op) for _, op in pikepdf.parse_content_stream(page)]
+        self.assertNotIn("gs", ops)
 
     # --- __is_redaction / process_page integration -------------------------
 
@@ -310,6 +316,50 @@ class TestUnredactPdf(unittest.TestCase):
         out = pikepdf.parse_content_stream(page)
         ops = [str(op) for _, op in out]
         self.assertIn("gs", ops)
+
+    def test_device_rgb_sc_white_rect_is_not_redaction(self):
+        """DeviceRGB colors supplied through sc must retain their values."""
+        stream = _encode_ops(
+            (["/DeviceRGB"], "cs"),
+            ([1, 1, 1], "sc"),
+            ([50, 100, 200, 20], "re"),
+            ([], "f"),
+        )
+        pdf, page = _make_page(content_stream=stream)
+        u = UnredactPdf(pdf)
+        u.process_page(page)
+        ops = [str(op) for _, op in pikepdf.parse_content_stream(page)]
+        self.assertNotIn("gs", ops)
+
+    def test_transparent_graphics_state_rect_is_not_redaction(self):
+        """A fully transparent fill must not be replaced with a highlight."""
+        stream = _encode_ops(
+            (["/Invisible"], "gs"),
+            ([0, 0, 0], "rg"),
+            ([50, 100, 200, 20], "re"),
+            ([], "f"),
+        )
+        pdf, page = _make_page(content_stream=stream)
+        page["/Resources"]["/ExtGState"] = pikepdf.Dictionary(
+            {"/Invisible": pikepdf.Dictionary({"/ca": 0})}
+        )
+        u = UnredactPdf(pdf)
+        u.process_page(page)
+        ops = [str(op) for _, op in pikepdf.parse_content_stream(page)]
+        self.assertEqual(ops.count("gs"), 1)
+
+    def test_even_odd_fill_rule_is_preserved(self):
+        """Replacing a redaction must not change an f* fill into a normal fill."""
+        stream = _encode_ops(
+            ([0, 0, 0], "rg"),
+            ([50, 100, 200, 20], "re"),
+            ([], "f*"),
+        )
+        pdf, page = _make_page(content_stream=stream)
+        u = UnredactPdf(pdf)
+        u.process_page(page)
+        ops = [str(op) for _, op in pikepdf.parse_content_stream(page)]
+        self.assertIn("f*", ops)
 
     # --- graphics state stack (q / Q) --------------------------------------
 
