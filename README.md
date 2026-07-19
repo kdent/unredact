@@ -1,5 +1,11 @@
 # unredact
 
+## Website
+
+Visit the [website](http://www.ovidly.com/unredact/) for more information.
+
+## Introduction
+
 A tool to remove weak redactions from PDF files. When a PDF is poorly redacted
 by drawing a black rectangle over text (rather than permanently removing the
 underlying content), `unredact` detects those rectangles and removes them
