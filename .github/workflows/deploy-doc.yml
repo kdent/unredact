@@ -19,8 +19,7 @@ jobs:
   build-and-deploy:
     environment:
       name: github-pages
-#      url: ${{ steps.deployment.outputs.page_url }}
-      url: https://www.ovidly.com/unredact/docs
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -55,7 +54,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload Documentation Site Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           # pdoc creates a subfolder unredact inside the output directory.
           path: 'public'
