@@ -42,7 +42,7 @@ jobs:
           # '--html' tells it to output HTML files
           # '--output-dir docs' puts the files in a folder named 'docs'
           # '--force' overwrites any existing files
-          pdoc --html --output-dir docs --force unredact
+          make docs
 
       - name: Setup GitHub Pages Artifact
         uses: actions/configure-pages@v5
