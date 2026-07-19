@@ -41,7 +41,7 @@ jobs:
       - name: Prepare build directory
         run: |
           mkdir -p public
-          cp static/* public/
+          cp docs/* public/
 
       - name: Generate Documentation with pdoc3
         run: |
