@@ -240,10 +240,8 @@ class UnredactPdf:
 
             # Graphics state may set opacity in the page dictionary
             if operator == pikepdf.Operator("gs"):
-                if (
-                    self.__is_graphics_state_transparent(
-                        page, str(first_operand)
-                    )
+                if self.__is_graphics_state_transparent(
+                    page, str(first_operand)
                 ):
                     current_state = graphics_state_history.peek()
                     current_state.fill_transparent = True

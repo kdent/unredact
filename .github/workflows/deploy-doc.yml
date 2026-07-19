@@ -1,0 +1,62 @@
+name: Deploy pdoc3 to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write    # Required to deploy directly to GitHub Pages
+  id-token: write # Required for security validation during deployment
+
+# Ensures that only one deployment runs at a time to prevent conflicts
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps: deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.x
+          cache: 'pip' # Speeds up subsequent runs by caching dependencies
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pdoc3
+          # If your code imports other packages, install them here:
+          # pip install -r requirements.txt
+          # pip install .
+
+      - name: Generate Documentation with pdoc3
+        run: |
+          # Arguments:
+          # '--html' tells it to output HTML files
+          # '--output-dir docs' puts the files in a folder named 'docs'
+          # '--force' overwrites any existing files
+          pdoc --html --output-dir docs --force unredact
+
+      - name: Setup GitHub Pages Artifact
+        uses: actions/configure-pages@v5
+
+      - name: Upload Documentation Site Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # pdoc creates a subfolder unredact inside the output directory.
+          path: 'docs/unredact' 
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unredact — Documentation & Home</title>
+<!-- Imports a zero-config CSS framework that supports dark/light mode -->
+
+<link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+
+<style>
+
+html, body {
+  overflow-y: visible !important; /* Allows vertical scrolling */
+  overflow-x: visible !important; /* Forces layout boxes to let elements out */
+}
+
+
+.hero-image {
+    clear: both;
+    float: right;
+    width: 250px;
+    height: auto;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    margin-right: calc((100vw - 100%) / -2);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+/* 1. RESET & BAR CONTAINER */
+.top-nav {
+  /* Break out of the Water.css narrow body width to fill the screen */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  
+  /* Styling the bar background */
+  background-color: var(--background-alt, #f0f4f8); /* Matches Water.css theme colors */
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  padding: 15px 0;
+  margin-bottom: 40px; /* Pushes your page content down slightly */
+}
+
+/* 2. INNER CONTAINER (Aligns nav items with your main text margins) */
+.nav-container {
+  max-width: 800px; /* Matches Water.css standard reading width */
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between; /* Pushes Logo to Left, Links to Right */
+  align-items: center;
+}
+
+/* 3. LOGO STYLING */
+.nav-logo {
+  font-weight: bold;
+  font-size: 1.25rem;
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+/* 4. LINKS LIST */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px; /* Adds clean spacing between menu items */
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+/* Hover state using Water.css variable colors */
+.nav-links a:hover {
+  color: var(--text-main);
+}
+
+/* 5. RESPONSIVE MOBILE VIEW */
+@media (min-width: 1100px) {
+    .hero-image {
+        width: 50%;
+        margin-right: -150px;
+    }
+}
+@media (max-width: 600px) {
+  .nav-container {
+    flex-direction: column; /* Stacks logo above links on small screens */
+    gap: 15px;
+    text-align: center;
+  }
+  .nav-links {
+    gap: 15px;
+  }
+}
+
+
+</style>
+
+</head>
+
+<body>
+<nav class="top-nav">
+  <div class="nav-container">
+    <a href="#" class="nav-logo">Remove weak redactions from PDF files</a>
+    <ul class="nav-links">
+      <li><a href="./unredact/index.html">API</a></li>
+      <li><a href="https://github.com/kdent/unredact">GitHub Repo</a></li>
+      <li><a href="mailto:&#x6b;&#x64;&#x65;&#x6e;&#x74;&#x40;&#x6f;&#x76;&#x69;&#x64;&#x6c;&#x79;&#x2e;&#x63;&#x6f;&#x6d;">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<img class="hero-image" src="redact-unredct.gif"
+    alt="Before/After demo of PDF unredaction">
+
+<header>
+<h1>Unredact</h1>
+<!--
+<p><em>A Python utility to remove weak redactions from PDF files.</em></p>
+-->
+</header>
+
+<main>
+
+<section>
+<a href="#getting-started" style="display: inline-block; background: #0076d6; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 4px; font-weight: bold;">
+Jump to Getting Started &rarr;
+</a>
+or
+<a href="./unredact/index.html" style="display: inline-block; background: #0076d6; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 4px; font-weight: bold;">
+Browse API Reference &rarr;
+</a>
+</section>
+
+<section>
+<h2>Introduction</h2>
+<i>unredact</i> is a Python program and library that
+removes weak redactions from PDF files. It is primarily written by 
+<a href="https://github.com/kdent">Kyle Dent</a>. Note that <i>unredact</i>
+cannot remove strong redactions and won't reveal anything more than you can
+show by highlighting the redacted text and pasting it into another document.
+
+<h3>What is redaction?</h3>
+<p>
+<i>Redaction</i> is a form of hiding sensitive content from documents. It's
+generally used in legal or government contexts where most or some of a document
+can be released to the public or other parties but some of the information is
+excluded from the release.
+</p>
+
+<p>
+You'll recognize redactions as the thick black boxes that strike through lines
+of text in redacted documents. Originally redactions were done with a thick
+black marker overwriting the text on paper. With digital documents, redactions
+are generally handled by special software that can black out the excluded
+information in a similar fashion. When done properly, redactions cannot be
+reversed. But in some circumstances redacted text can be revealed by simply
+highlighting the text on a page, including the text that is blacked out, then
+copying and pasting it into another document. Using <i>unredact</i> will reveal
+the text for you directly within the PDF document.
+</p>
+
+<p>
+These poorly done or weak redactions are <a
+href="https://www.americanbar.org/groups/judicial/publications/judges_journal/2019/spring/embarrassing-redaction-failures/">more
+common</a> than you might think and have been the source of valuable
+information for investigative journalists and others. Freedom of Information
+requests seeking documents from government agencies often result in documents
+with some of the content redacted.
+</p>
+
+</section>
+
+<section>
+<a name="getting-started">
+<h2>Getting Started</h2>
+</a> <p>
+<i>unredact</i> requires at least Python version 3.11 and the <i>pikepdf</i>
+library.  After checking your Python version, use your favorite package manager
+to install pikepdf.
+</p>
+<p>
+You can download the <i>unredact</i> code directly from GitHub. Either clone
+the repository at
+<a
+href="https://github.com/kdent/unredact">https://github.com/kdent/unredact</a>
+or click on the green Code button and then select "Download ZIP". After
+unzipping the files, in a terminal set your current directory to the top level
+of the code. Then execute:
+<pre><code>pip install -e .
+</code></pre>
+You can use your favorite package manager instead of pip if you prefer.
+</p>
+
+<p>
+Once installed, run <code>unredact</code> as a command in your shell. You can
+specify one or more PDF files to be processed. To process a single file, simply
+type:
+</p>
+
+<pre><code> unredact input.pdf
+</code></pre>
+
+<p>
+This will produce an unredacted PDF file called
+<code>input-unredacted.pdf</code> in the current directory.
+</p>
+
+<p>
+The general syntax is
+
+<pre><code>unredact [-h] [-v] [-o OUTPUT_DIR] pdf_file [pdf_file ...]
+</code></pre>
+
+<p>
+You can specify one or more files to be processed and optionally an output 
+directory where the unredacted files should be written. Unredacted file
+names will have the form <code>originl-file-name-unredacted.pdf</code>. An example
+with multiple files written to a given output directory:
+</p>
+
+<pre><code>unredact -o unredacted_pdf_files input1.pdf input2.pdf input3.pdf
+</code></pre>
+
+<p>
+After running this example, you will have the three files 
+<code>input1-unredacted.pdf</code> <code>input2-unredacted.pdf</code> and <code>input3-unredacted.pdf</code>
+in the <code>unredacted_pdf_files/</code> directory.
+</p>
+</section>
+
+<section>
+<h2>Using the unredact Library</h2>
+<p>
+<i>unredact</i> can be imported and used directly in your own Python code,
+which is useful if you want to integrate redaction removal into a larger
+workflow&mdash;for example, processing uploaded files, a pipeline, or an
+in-memory source rather than the command line.
+</p>
+
+<h3>Basic Usage</h3>
+
+<p>
+The main class is <i>UnredactPdf</i>. The typical pattern is to open a PDF,
+call <code>process_page()</code> on each page, then save the result:
+
+<pre><code>from unredact.core import UnredactPdf
+
+# Open from a file path
+doc = UnredactPdf.from_path("redacted.pdf")
+
+# Process every page
+for page in doc.pages:
+    doc.process_page(page)
+
+# Save to a file path
+doc.save("unredacted.pdf")
+</code></pre>
+
+<h3>Working with file-like objects</h3>
+
+<p>
+If you're working with PDFs in memory, for example from a web framework or a 
+pipeline that hands you a stream, you can open a pikepdf object directly and 
+save to a <code>BytesIO</code> buffer rather than a file on disk:
+</p>
+
+<pre><code>import io
+import pikepdf
+from unredact.core import UnredactPdf
+
+# Open from a file-like object (e.g. a BytesIO buffer or an uploaded file)
+pdf_bytes = io.BytesIO(uploaded_file_content)
+pdf_obj = pikepdf.open(pdf_bytes)
+doc = UnredactPdf(pdf_obj)
+
+for page in doc.pages:
+    doc.process_page(page)
+
+# Save to a buffer instead of a file
+output_buffer = io.BytesIO()
+doc.save(output_buffer)
+output_buffer.seek(0)
+# output_buffer.read() now contains the processed PDF bytes
+</code></pre>
+
+<h3>Processing a subset of pages</h3>
+
+<p>
+If you want to process specific pages rather than the whole document, 
+iterate over the pages you need. Pages are zero-indexed:
+</p>
+
+<pre><code>doc = UnredactPdf.from_path("redacted.pdf")
+
+# Process only the first three pages
+for page in doc.pages[:3]:
+    doc.process_page(page)
+
+doc.save("partially_unredacted.pdf")
+</code></pre>
+</section>
+
+</main>
+
+<footer>
+<hr>
+<p style="font-size: 0.85rem; text-align: center;">
+Maintained by the Kyle Dent. View source on <a href="https://github.com/kdent/unredact">GitHub</a>.
+</p>
+</footer>
+
+</body>
+</html>
+
