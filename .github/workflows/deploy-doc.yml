@@ -19,7 +19,8 @@ jobs:
   build-and-deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+#      url: ${{ steps.deployment.outputs.page_url }}
+      url: https://www.ovidly.com/unredact/docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
