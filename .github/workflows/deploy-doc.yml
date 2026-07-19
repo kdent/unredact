@@ -38,13 +38,18 @@ jobs:
           pip install .
           pip install pdoc3
 
+      - name: Prepare build directory
+        run: |
+          mkdir -p public
+          cp static/* public/
+
       - name: Generate Documentation with pdoc3
         run: |
           # Arguments:
           # '--html' tells it to output HTML files
           # '--output-dir docs' puts the files in a folder named 'docs'
           # '--force' overwrites any existing files
-          make docs
+          pdoc3 --html --output-dir public/api unredact --force
 
       - name: Setup GitHub Pages Artifact
         uses: actions/configure-pages@v5
@@ -53,7 +58,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # pdoc creates a subfolder unredact inside the output directory.
-          path: 'docs/unredact' 
+          path: 'public'
 
       - name: Deploy to GitHub Pages
         id: deployment
