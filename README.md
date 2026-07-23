@@ -289,7 +289,7 @@ which will execute
 pdoc --html --output-dir docs --force unredact
 ```
 
-which will  create the API documentation in the `docs\unredact` subdirectory.
+which will  create the API documentation in the `docs/unredact` subdirectory.
 The documentation is created by extracting docstring comments from each function
 in the source code. To modify the documentation, edit the comments and
 rerun `pdoc`.
