@@ -9,6 +9,8 @@
 ## Checklist before requesting a review
 <!--- These are suggested things you could add, but what you add will be dependent on your repository's standards. --->
 - [ ] The code runs successfully.
+- [ ] The code passes `make check`
+- [ ] The code passes `make format`
 
 ```terminal
 HERE IS SOME COMMAND LINE OUTPUT
