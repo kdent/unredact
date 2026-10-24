@@ -13,8 +13,8 @@ revealing the text underneath. By default, `unredact` also highlights the
 text that has been revealed to indicate the text that had been previously
 redacted.
 
-There are many programs that can detect and extract text that has been redacted
-in this way. `unredact` has the added feature of revealing text within the 
+There are many programs that can detect and extract poorly redacted text.
+`unredact` has the added feature of revealing text within the 
 PDF file itself. In other words, after running `unredact`, you will have a
 nearly identical PDF file, but with the redacted text highlighted instead of 
 blacked out.
@@ -67,13 +67,15 @@ to the source code will take effect immediately without reinstalling.
 
 ### Poetry
 
+Poetry will read the `pyproject.toml` file and install `pikepdf` automatically.
+
 ```bash
 poetry install
 ```
 
-Poetry will read `pyproject.toml` and install `pikepdf` automatically.
 
 ### uv
+The `uv` package manager works the same way with the `sync` argument.
 
 ```bash
 uv sync
@@ -81,8 +83,8 @@ uv sync
 
 ### Conda / Anaconda
 
-`pikepdf` is available on the `conda-forge` channel rather than the default 
-Conda channel. Install it with:
+If you use Anaconda, `pikepdf` is available on the `conda-forge` channel rather
+than the default Conda channel. Install it with:
 
 ```bash
 conda install -c conda-forge pikepdf
