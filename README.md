@@ -172,9 +172,7 @@ dependencies = [
 ### Basic usage
 
 The main class is `UnredactPdf`. The typical pattern is to open a PDF file,
-call 
-
-`process_page()` on each page, then save the result:
+call `process_page()` on each page, then save the result:
 
 ```python
 from unredact.core import UnredactPdf
